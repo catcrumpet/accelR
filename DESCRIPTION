@@ -1,7 +1,7 @@
 Package: accelR
 Type: Package
 Title: Accelerometer Data Analysis in R
-Version: 0.3.0
+Version: 0.4.0
 Author: Daniel Chu
 Maintainer: Daniel Chu <chudanie@usc.edu>
 Description: More about what it does (maybe more than one line)
