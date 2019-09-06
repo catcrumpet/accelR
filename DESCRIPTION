@@ -1,0 +1,29 @@
+Package: accelR
+Type: Package
+Title: What the Package Does (Title Case)
+Version: 0.1.0
+Author: Daniel Chu
+Maintainer: Daniel Chu <chudanie@usc.edu>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    Rcpp (>= 1.0.2),
+    dplyr,
+    tsibble,
+    assertthat,
+    lubridate,
+    zoo,
+    tidyselect,
+    tidyr,
+    stringr,
+    DBI,
+    RSQLite,
+    magrittr,
+    tibble,
+    anytime
+LinkingTo: Rcpp
+RoxygenNote: 6.1.1
+ByteCompile: true
