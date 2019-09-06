@@ -26,7 +26,7 @@ set_attr_ <- function(x, which, value) {
 }
 
 reset_acc_attr_ <- function(new_data, old_data) {
-    c("epochlength", "tz", "type", "settings") %>%
+  c("epochlength", "tz", "type", "settings") %>%
     purrr::map(~function(new_data, old_data) set_attr_(new_data, .x, attr(old_data, .x))) %>%
     purrr::reduce(~function(new_data, old_data) .x(new_data, old_data) %>% .y(old_data)) %>%
     {.(new_data, old_data)}
@@ -36,4 +36,14 @@ mutate_acc_ <- function(acc_data, ...) {
   acc_data %>%
     mutate(...) %>%
     reset_acc_attr_(acc_data)
+}
+
+expand_periods_ <- function(acc_data, periods) {
+  purrr::map2(periods$.from, periods$.to,
+              ~with(acc_data, .x >= timestamp & .y < timestamp)) %>%
+    purrr::pmap_lgl(function(...) any(...))
+}
+
+add_period_ <- function(acc_data, periods, varname) {
+  mutate_acc_(acc_data, !!varname := expand_periods_(acc_data, periods))
 }

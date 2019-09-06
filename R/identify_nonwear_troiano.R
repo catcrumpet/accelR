@@ -1,5 +1,13 @@
 #' @export
 
+add_nonwear_troiano <- function(acc_data, nonwear = "nonwear", ...) {
+  add_period_(acc_data,
+              identify_nonwear_troiano(acc_data, ...),
+              nonwear)
+}
+
+#' @export
+
 identify_nonwear_troiano <- function(acc_data,
                                      activity_threshold = 0,
                                      min_period_len = 60,
@@ -59,11 +67,11 @@ identify_nonwear_troiano_seq_ <- function(data,
            wear = if_else(count > spike_stoplevel, 2L, wear)) %>%
     group_by(rleid = data.table::rleidv(wear)) %>%
     summarise(wear = first(wear),
-              timestamp = first(timestamp),
-              length = n()) %>%
+              .from = first(timestamp),
+              .n = n()) %>%
     mutate(wear = if_else(wear == 1L &
                             lead(wear, default = 1L) == 0L &
-                            length <= spike_tolerance,
+                            .n <= spike_tolerance,
                           NA_integer_, wear),
            # Since `na.locf` can't impute leading NAs, fill in those with 1s
            wear = if_else(row_number() == 1 & is.na(wear), 1L, wear),
@@ -71,12 +79,11 @@ identify_nonwear_troiano_seq_ <- function(data,
            wear = zoo::na.locf(wear)) %>%
     group_by(rleid = data.table::rleidv(wear)) %>%
     summarise(wear = first(wear),
-              timestamp = first(timestamp),
-              length = sum(length)) %>%
-    filter(wear == 0L, length >= min_period_len) %>%
-    rename(period_start = timestamp) %>%
-    mutate(period_end = period_start + lubridate::seconds(length * epoch_len)) %>%
-    select(period_start, period_end, length)
+              .from = first(.from),
+              .n = sum(.n)) %>%
+    filter(wear == 0L, .n >= min_period_len) %>%
+    mutate(.to = .from + lubridate::seconds(.n * epoch_len)) %>%
+    select(.from, .to, .n)
 }
 
 identify_nonwear_troiano_nonseq_ <- function(data,
@@ -90,14 +97,14 @@ identify_nonwear_troiano_nonseq_ <- function(data,
 
   data %>%
     transmute(count = if_else(count > max_nonzero_count, 0, count),
-              length = wle(count, activity_threshold, spike_tolerance, spike_stoplevel)) %>%
-    filter(length >= min_period_len) %>%
-    rename(period_start = timestamp) %>%
-    select(period_start, length) %>%
-    mutate(period_end = period_start + lubridate::seconds(length * epoch_len)) %>%
-    mutate(a = lubridate::time_length(period_start - first(period_start), "second"),
-           b = lubridate::time_length(period_end - first(period_start), "second")) %>%
+              .n = wle(count, activity_threshold, spike_tolerance, spike_stoplevel)) %>%
+    filter(.n >= min_period_len) %>%
+    rename(.from = timestamp) %>%
+    select(.from, .n) %>%
+    mutate(.to = .from + lubridate::seconds(.n * epoch_len)) %>%
+    mutate(a = lubridate::time_length(.from - first(.from), "second"),
+           b = lubridate::time_length(.to - first(.from), "second")) %>%
     # Remove periods which overlap with previous periods
     filter(overlap(a, b)) %>%
-    select(period_start, period_end, length)
+    select(.from, .to, .n)
 }

@@ -1,6 +1,6 @@
 #' @export
 
-add_pa <- function(acc_data,
+add_pa_category <- function(acc_data,
                    age = NA,
                    cut_params = pacuts_troiano,
                    use_magnitude = FALSE,
@@ -23,9 +23,16 @@ add_pa <- function(acc_data,
     {
       if (add_age) mutate_acc_(., !!age_var := !!age) else .
     } %>%
-    mutate_acc_(!!pa := add_pa_(data = if (!!use_magnitude) calc_mag_(.) else axis1,
-                                epoch_len = attr(., "epochlength"),
-                                pacuts = cut_params(as.integer(!!age))))
+    mutate_acc_(!!pa := calculate_pa_category(x = if (!!use_magnitude) calc_mag_(.) else axis1,
+                                              epoch_len = attr(., "epochlength"),
+                                              age = !!age,
+                                              cut_params = !!cut_params))
+}
+
+#' @export
+
+calculate_pa_category <- function(x, epoch_len, age, cut_params = pacuts_troiano) {
+  purrr::lift(cut)(c(x = list(x * (60L / epoch_len)), cut_params(age)))
 }
 
 #' @export
@@ -50,8 +57,4 @@ pacuts_troiano <- function(age) {
          include.lowest = TRUE,
          right = FALSE,
          ordered_result = TRUE)
-}
-
-add_pa_ <- function(data, epoch_len, pacuts) {
-  purrr::lift(cut)(c(x = list(data * (60L / epoch_len)), pacuts))
 }
