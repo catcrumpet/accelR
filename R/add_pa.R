@@ -6,10 +6,10 @@ add_pa <- function(acc_data,
                    use_magnitude = FALSE,
                    add_age = FALSE,
                    pa = "pa") {
-  if (is.na(age) & is.na(ext_setting_(acc_data, "age"))) {
+  if (is.na(age) & is.na(get_setting(acc_data, "age"))) {
     stop("Valid age must be provided.")
-  } else if (!is.na(ext_setting_(acc_data, "age"))) {
-    age <- ext_setting_(acc_data, "age")
+  } else if (!is.na(get_setting(acc_data, "age"))) {
+    age <- get_setting(acc_data, "age")
   }
 
   if (is.character(add_age)) {
@@ -21,11 +21,11 @@ add_pa <- function(acc_data,
 
   acc_data %>%
     {
-      if (add_age) mutate(., !!age_var := !!age) else .
+      if (add_age) mutate_acc_(., !!age_var := !!age) else .
     } %>%
-    mutate(!!pa := add_pa_(data = if (!!use_magnitude) calc_mag_(.) else axis1,
-                           epoch_len = attr(., "epochlength"),
-                           pacuts = cut_params(as.integer(!!age))))
+    mutate_acc_(!!pa := add_pa_(data = if (!!use_magnitude) calc_mag_(.) else axis1,
+                                epoch_len = attr(., "epochlength"),
+                                pacuts = cut_params(as.integer(!!age))))
 }
 
 #' @export

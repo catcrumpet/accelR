@@ -17,6 +17,7 @@
 #' @importFrom dplyr vars starts_with ends_with matches
 #' @importFrom dplyr n first last row_number lag lead if_else case_when na_if
 #' @importFrom magrittr %>%
+#' @importFrom rlang !!
 NULL
 
 globalVariables(".")

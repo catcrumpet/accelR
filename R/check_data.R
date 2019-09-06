@@ -1,6 +1,6 @@
 check_data_starttime <- function(acc_data) {
   if (first(acc_data$timestamp) !=
-      ext_setting_(acc_data, "startdatetime")) {
+      get_setting(acc_data, "startdatetime")) {
     stop("Data start time does not match setting start time.")
   }
   invisible(TRUE)
@@ -9,7 +9,7 @@ check_data_starttime <- function(acc_data) {
 check_data_stoptime <- function(acc_data) {
   if ((last(acc_data$timestamp) +
        lubridate::seconds(attr(acc_data, "epochlength"))) !=
-      ext_setting_(acc_data, "stopdatetime")) {
+      get_setting(acc_data, "stopdatetime")) {
     stop("Data stop time does not match setting stop time.")
   }
   invisible(TRUE)
