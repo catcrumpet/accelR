@@ -27,7 +27,7 @@ identify_nonwear_troiano <- function(acc_data,
     }
   }
 
-  epoch_len <- attr(acc_data, "epochlength")
+  epoch_len <- get_epochlength(acc_data)
   epochs_min <- 60L / epoch_len
 
   data <-
@@ -47,13 +47,13 @@ identify_nonwear_troiano <- function(acc_data,
          use_magnitude = use_magnitude)
 
   if (endat_nnz_seq) {
-    purrr::lift(identify_nonwear_troiano_seq_)(troiano_args)
+    purrr::lift(id_nw_troiano_seq_)(troiano_args)
   } else {
-    purrr::lift(identify_nonwear_troiano_nonseq_)(troiano_args)
+    purrr::lift(id_nw_troiano_nonseq_)(troiano_args)
   }
 }
 
-identify_nonwear_troiano_seq_ <- function(data,
+id_nw_troiano_seq_ <- function(data,
                                epoch_len,
                                activity_threshold,
                                min_period_len,
@@ -86,7 +86,7 @@ identify_nonwear_troiano_seq_ <- function(data,
     select(.from, .to, .n)
 }
 
-identify_nonwear_troiano_nonseq_ <- function(data,
+id_nw_troiano_nonseq_ <- function(data,
                                   epoch_len,
                                   activity_threshold,
                                   min_period_len,

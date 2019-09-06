@@ -9,6 +9,7 @@ add_pa_category <- function(acc_data,
   if (is.na(age) & is.na(get_setting(acc_data, "age"))) {
     stop("Valid age must be provided.")
   } else if (!is.na(get_setting(acc_data, "age"))) {
+    message("Using age provided in settings.")
     age <- get_setting(acc_data, "age")
   }
 
@@ -24,7 +25,7 @@ add_pa_category <- function(acc_data,
       if (add_age) mutate_acc_(., !!age_var := !!age) else .
     } %>%
     mutate_acc_(!!pa := calculate_pa_category(x = if (!!use_magnitude) calc_mag_(.) else axis1,
-                                              epoch_len = attr(., "epochlength"),
+                                              epoch_len = get_epochlength(.),
                                               age = !!age,
                                               cut_params = !!cut_params))
 }

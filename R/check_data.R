@@ -8,7 +8,7 @@ check_data_starttime <- function(acc_data) {
 
 check_data_stoptime <- function(acc_data) {
   if ((last(acc_data$timestamp) +
-       lubridate::seconds(attr(acc_data, "epochlength"))) !=
+       lubridate::seconds(get_epochlength(acc_data))) !=
       get_setting(acc_data, "stopdatetime")) {
     stop("Data stop time does not match setting stop time.")
   }
@@ -23,13 +23,10 @@ check_data_gaps <- function(acc_data) {
 }
 
 check_data_epochlength <- function(acc_data) {
-
-  assert_that(has_attr(acc_data, "epochlength"))
-
-  if (!tsibble::interval(acc_data)$second == attr(acc_data, "epochlength")) {
+  if (get_epochlength(acc_data) != get_setting(acc_data, "epochlength")) {
     stop("Epoch length does not match data interval.")
   }
-  if (60 %% attr(acc_data, "epochlength")) {
+  if (60L %% get_epochlength(acc_data)) {
     stop("Epochs should be exact divisors of 60.")
   }
   invisible(TRUE)

@@ -5,8 +5,6 @@ read_agd <- function(file, tz = "UTC") {
 
     acc_data <-
         agd_data_raw$data %>%
-        set_attr_("epochlength", agd_data_raw$settings$epochlength[[1]]) %>%
-        set_attr_("tz", tz) %>%
         set_attr_("type", "actigraph") %>%
         set_attr_("settings", agd_data_raw$settings)
 

@@ -10,6 +10,18 @@ list_settings <- function(acc_data) {
   names(attributes(acc_data)$settings)
 }
 
+#' @export
+
+get_epochlength <- function(acc_data) {
+  as.integer(tsibble::interval(acc_data)$second)
+}
+
+#' @export
+
+get_timezone <- function(acc_data) {
+  attr(acc_data$timestamp,"tzone")
+}
+
 calc_mag_ <- function(acc_data) {
   acc_data %>%
     tsibble::as_tibble() %>%
@@ -26,7 +38,7 @@ set_attr_ <- function(x, which, value) {
 }
 
 reset_acc_attr_ <- function(new_data, old_data) {
-  c("epochlength", "tz", "type", "settings") %>%
+  c("type", "settings") %>%
     purrr::map(~function(new, old) set_attr_(new, .x, attr(old, .x))) %>%
     purrr::reduce(~function(new, old) .x(new, old) %>% .y(old)) %>%
     {.(new_data, old_data)}
