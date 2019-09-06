@@ -1,10 +1,18 @@
+#' Read accelerometer data from an *.agd file
+#'
+#' Read ActiGraph accelerometer data from a database stored in an AGD file. Return a tsibble.
+#' @param file Full path to an agd file to read.
+#' @param tz Time zone for the output data, converted from UTC (the default).
+#' @return A \code{tsibble} (\code{tbl_ts}) of accelerometer data with at least two columns: timestamp and axis1.
+#' ActiGraph settings are stored as a tibble in the settings attribute.
 #' @export
 read_agd <- function(file, tz = "UTC") {
 
-    agd_data_raw <- read_agd_raw(file, tz)
+    agd_data_raw <- read_agd_raw_(file, tz)
 
     acc_data <-
         agd_data_raw$data %>%
+        tsibble::as_tsibble(index = timestamp) %>%
         set_attr_("type", "actigraph") %>%
         set_attr_("settings", agd_data_raw$settings)
 
@@ -19,7 +27,7 @@ read_agd <- function(file, tz = "UTC") {
     acc_data
 }
 
-read_agd_raw <- function(file, tz = "UTC") {
+read_agd_raw_ <- function(file, tz = "UTC") {
     assert_that(file.exists(file))
 
     db <- DBI::dbConnect(RSQLite::SQLite(), dbname = file)
@@ -56,8 +64,7 @@ read_agd_raw <- function(file, tz = "UTC") {
         rename_all(tolower) %>%
         rename(timestamp = datatimestamp) %>%
         mutate(timestamp = time_convert_(timestamp, tz = tz)) %>%
-        mutate_if(is.numeric, as.integer) %>%
-        tsibble::as_tsibble(index = timestamp)
+        mutate_if(is.numeric, as.integer)
 
     list(data = data, settings = settings)
 }
