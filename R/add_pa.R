@@ -1,5 +1,19 @@
+#' Add PA category to accelerometer data
+#'
+#' Adds PA category as a new column in accelerometer data. Returns original
+#' data with appended column(s).
+#' @param acc_data Accelerometer tsibble object.
+#' @param age Age in years as a numeric value.
+#' @param cut_params Cut parameters, default is Troiano cut parameters.
+#' @param use_magnitude Should magnitude be used instead of axis1 (the default)?
+#' @param add_age Should the age value be appended as a separate column to the
+#' output? Can accept a string value, which will be used as the new age column
+#' name.
+#' @param pa The name for the new column containing PA category values.
+#' @return The original accelerometer data with an appended column for physical
+#' activity category and optionally another appended column for age.
+#' ActiGraph settings are stored as a tibble in the settings attribute.
 #' @export
-
 add_pa_category <- function(acc_data,
                    age = NA,
                    cut_params = pacuts_troiano,
@@ -30,14 +44,26 @@ add_pa_category <- function(acc_data,
                                               cut_params = !!cut_params))
 }
 
+#' Calculate PA category
+#'
+#' Calculates PA category given count data and other paramters. Returns a
+#' vector of values.
+#' @param x Numeric vector of counts.
+#' @param epoch_len Epoch length in seconds.
+#' @param age Age in years as a numeric value.
+#' @param cut_params Cut parameters, default is Troiano cut parameters.
+#' @return An ordinal vector of the same length as \code{x}.
 #' @export
-
 calculate_pa_category <- function(x, epoch_len, age, cut_params = pacuts_troiano) {
   purrr::lift(cut)(c(x = list(x * (60L / epoch_len)), cut_params(age)))
 }
 
+#' Cut parameters for Troiano
+#'
+#' Generates cut parameters based on Troiano values given an age.
+#' @param age Age in years as a numeric value.
+#' @return A list of parameters for the cut function.
 #' @export
-
 pacuts_troiano <- function(age) {
   case_when(age == 6 ~ c(1400, 3758),
             age == 7 ~ c(1515, 3947),
