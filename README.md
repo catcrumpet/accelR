@@ -1,6 +1,9 @@
 # accelR
 
-Install my terrible code using the `devtools` package like so: `devtools::install_github("catcrumpet/accelR")`
+Install my terrible code using the `devtools` package like so: 
+```R
+devtools::install_github("catcrumpet/accelR")
+```
 
 ## A short and painful tutorial
 
