@@ -36,7 +36,7 @@ The `good_data` should look something like this:
 # … with 1,071 more rows
 ```
 
-The print out displays how many observations/epochs there are (`1081`) and the counts for the three axes. Not all ActiGraph accelerometers collect data on three axes. Also, we can see the timezone (`America/Los_Angeles`) and the epoch length (`10s`).
+The print out displays how many observations/epochs there are (`1081`) and the counts for the three axes (`axis1`, `axis2`, and `axis3`). Not all ActiGraph accelerometers collect data on three axes. Also, we can see the timezone (`America/Los_Angeles`) and the epoch length (`10s`).
 
 Add a column for nonwear, we will use a modified Troiano approach that is more strict (i.e., no spikes).
 ```R
@@ -83,3 +83,5 @@ Finally, `best_data` should look something like this:
 10 2017-11-30 00:01:30   505   227   245 FALSE   mod  
 # … with 1,071 more rows
 ```
+
+I'm still learning how to document this, so references will be added in.
