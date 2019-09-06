@@ -43,7 +43,7 @@ Add a column for nonwear, we will use a modified Troiano approach that is more s
 better_data <- add_nonwear_troiano(good_data, spike_tolerance = 0)
 ```
 
-`better_data` now has a new column for nonwear:
+`better_data` now has a new column for nonwear (`nonwear`):
 ```
 # A tsibble: 1,081 x 5 [10s] <America/Los_Angeles>
    timestamp           axis1 axis2 axis3 nonwear
