@@ -7,13 +7,13 @@ devtools::install_github("catcrumpet/accelR")
 
 ## A short and painful tutorial
 
-Install and load the package.
+1. Install and load the package.
 ```R
 devtools::install_github("catcrumpet/accelR")
 library(accelR)
 ```
 
-1. Read in accelerometer data from an Actigraph device (i.e., a \*.agd file). In this case, the data was collected in Los Angeles, so the timezone is set appropriately.
+2. Read in accelerometer data from an Actigraph device (i.e., a \*.agd file). In this case, the data was collected in Los Angeles, so the timezone is set appropriately.
 ```R
 good_data <- read_agd("catcrumpet_data.agd", tz = "America/Los_Angeles")
 ```
@@ -38,7 +38,7 @@ The `good_data` should look something like this:
 
 The print out displays how many observations/epochs there are (`1081`) and the counts for the three axes (`axis1`, `axis2`, and `axis3`). Not all ActiGraph accelerometers collect data on three axes. Also, we can see the timezone (`America/Los_Angeles`) and the epoch length (`10s`).
 
-2. Add a column for nonwear, we will use a modified Troiano approach that is more strict (i.e., no spikes).
+3. Add a column for nonwear, we will use a modified Troiano approach that is more strict (i.e., no spikes).
 ```R
 better_data <- add_nonwear_troiano(good_data, spike_tolerance = 0)
 ```
@@ -61,7 +61,7 @@ better_data <- add_nonwear_troiano(good_data, spike_tolerance = 0)
 # … with 1,071 more rows
 ```
 
-3. Add a column for physical activity category. The default is to use Troiano cutpoints. In this case, the person is 12 years old.
+4. Add a column for physical activity category. The default is to use Troiano cutpoints. In this case, the person is 12 years old.
 ```R
 best_data <- add_pa_category(better_data, age = 12)
 ```
