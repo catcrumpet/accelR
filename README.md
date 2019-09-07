@@ -38,6 +38,16 @@ The `good_data` should look something like this:
 
 The print out displays how many observations/epochs there are (`1081`) and the counts for the three axes (`axis1`, `axis2`, and `axis3`). Not all ActiGraph accelerometers collect data on three axes. Also, we can see the timezone (`America/Los_Angeles`) and the epoch length (`10s`).
 
+Data need to pass several checks:
+  1. The data is ordered by timestamp (earliest to latest).
+  2. Each observation is regularly spaced by a constant time period (i.e., the epoch length).
+  3. No observations are duplicates.
+  4. The data spans the entire specified data collection time period.
+  5. The data contains no gaps in observations.
+  6. The epoch length of the data must an exact divisor of 60.
+
+Currently there are no tools to fix these issues, but these are in development.
+
 3. Add a column for nonwear, we will use a modified Troiano approach that is more strict (i.e., no spikes).
 ```R
 better_data <- add_nonwear_troiano(good_data, spike_tolerance = 0)
@@ -84,4 +94,6 @@ Finally, `best_data` should look something like this:
 # … with 1,071 more rows
 ```
 
-I'm still learning how to document this, so references will be added in.
+Final notes:
+- I'm still learning how to document this, so references will be added in.
+- Using the tidy verbs `mutate` or `select` will remove the necessary attribute data necessary for some of the calculations. If you need to run `mutate`, you can use the internal function `accelR:::mutate_acc_` which will preserve these attributes. This is not recommended, however.
