@@ -7,13 +7,13 @@ devtools::install_github("catcrumpet/accelR")
 
 ## A short and painful tutorial
 
-1. Install and load the package.
+### Install and load the package.
 ```R
 devtools::install_github("catcrumpet/accelR")
 library(accelR)
 ```
 
-2. Read in accelerometer data from an Actigraph device (i.e., a \*.agd file). In this case, the data was collected in Los Angeles, so the timezone is set appropriately.
+### Read in accelerometer data from an Actigraph device (i.e., a \*.agd file). In this case, the data was collected in Los Angeles, so the timezone is set appropriately.
 ```R
 good_data <- read_agd("catcrumpet_data.agd", tz = "America/Los_Angeles")
 ```
@@ -48,7 +48,7 @@ Data need to pass several checks:
 
 Currently there are no tools to fix these issues, but these are in development.
 
-3. Add a column for nonwear, we will use a modified Troiano approach that is more strict (i.e., no spikes).
+### Add a column for nonwear, we will use a modified Troiano approach that is more strict (i.e., no spikes).
 ```R
 better_data <- add_nonwear_troiano(good_data, spike_tolerance = 0)
 ```
@@ -71,7 +71,7 @@ better_data <- add_nonwear_troiano(good_data, spike_tolerance = 0)
 # … with 1,071 more rows
 ```
 
-4. Add a column for physical activity category. The default is to use Troiano cutpoints. In this case, the person is 12 years old.
+### Add a column for physical activity category. The default is to use Troiano cutpoints. In this case, the person is 12 years old.
 ```R
 best_data <- add_pa_category(better_data, age = 12)
 ```
@@ -94,6 +94,6 @@ Finally, `best_data` should look something like this:
 # … with 1,071 more rows
 ```
 
-Final notes:
-- I'm still learning how to document this, so references will be added in.
+## Final notes
+- I'm still learning how to document this, so references will be added in. I borrowed heavily from the work of other people and their attributions are due.
 - Using the tidy verbs `mutate` or `select` will remove the necessary attribute data necessary for some of the calculations. If you need to run `mutate`, you can use the internal function `accelR:::mutate_acc_` which will preserve these attributes. This is not recommended, however.
