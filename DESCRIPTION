@@ -4,8 +4,7 @@ Title: Accelerometer Data Analysis in R
 Version: 0.5.0
 Author: Daniel Chu
 Maintainer: Daniel Chu <chudanie@usc.edu>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Description: I like cats.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
