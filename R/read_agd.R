@@ -19,10 +19,11 @@ read_agd <- function(file, tz = "UTC") {
     assert_that(tsibble::is_regular(acc_data),
                 tsibble::is_ordered(acc_data),
                 !tsibble::is_duplicated(acc_data, index = timestamp))
+    check_data_epochlength(acc_data)
     check_data_starttime(acc_data)
     check_data_stoptime(acc_data)
     check_data_gaps(acc_data)
-    check_data_epochlength(acc_data)
+    check_data_names(acc_data)
 
     acc_data
 }
