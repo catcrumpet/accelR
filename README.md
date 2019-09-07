@@ -48,7 +48,7 @@ Data need to pass several checks:
 
 Currently there are no tools to fix these issues, but these are in development.
 
-### Add a column for nonwear, we will use a modified Troiano approach that is more strict (i.e., no spikes).
+### Add a column for nonwear, we will use a modified Troiano approach that is more strict with no spikes.
 ```R
 better_data <- add_nonwear_troiano(good_data, spike_tolerance = 0)
 ```
