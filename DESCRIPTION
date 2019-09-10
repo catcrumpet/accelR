@@ -1,8 +1,8 @@
 Package: accelR
 Type: Package
-Title: Accelerometer Data Analysis in R
+Title: Accelerometer Data Analysis in R (experimental)
 Version: 0.0.0.9000
-Author: Daniel Chu
+Author: Cat Crumpet
 Maintainer: Daniel Chu <chudanie@usc.edu>
 Description: I like cats.
 License: GPL-3
