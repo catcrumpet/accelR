@@ -1,20 +1,28 @@
 # accelR
 
+<!-- badges: start -->
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
+<!-- badges: end -->
+
+The goal of accelR is to provide a simple and easy interface to processing accelerometer data for physical activity analyses.
+
+## Installation
+
 Install my terrible code using the `devtools` package like so: 
-```R
+``` r
 devtools::install_github("catcrumpet/accelR")
 ```
 
 ## A short and painful tutorial
 
 ### Install and load the package.
-```R
+```r
 devtools::install_github("catcrumpet/accelR")
 library(accelR)
 ```
 
 ### Read in accelerometer data from an Actigraph device (i.e., a \*.agd file). In this case, the data was collected in Los Angeles, so the timezone is set appropriately.
-```R
+```r
 good_data <- read_agd("catcrumpet_data.agd", tz = "America/Los_Angeles")
 ```
 
@@ -49,7 +57,7 @@ Data need to pass several checks:
 Currently there are no tools to fix these issues, but these are in development.
 
 ### Add a column for nonwear, we will use a modified Troiano approach that is more strict with no spikes.
-```R
+```r
 better_data <- add_nonwear_troiano(good_data, spike_tolerance = 0)
 ```
 
@@ -72,7 +80,7 @@ better_data <- add_nonwear_troiano(good_data, spike_tolerance = 0)
 ```
 
 ### Add a column for physical activity category. The default is to use Troiano cutpoints. In this case, the person is 12 years old.
-```R
+```r
 best_data <- add_pa_category(better_data, age = 12)
 ```
 
