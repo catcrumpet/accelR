@@ -6,6 +6,8 @@
 
 The goal of accelR is to provide a simple and easy interface to processing accelerometer data for physical activity analyses.
 
+Everything is still being developed so anything can change at anytime.
+
 ## Installation
 
 Install my terrible code using the `devtools` package like so: 
