@@ -32,22 +32,29 @@ get_epochlength <- function(acc_data) {
 #' @return The timezone as a string value.
 #' @export
 get_timezone <- function(acc_data) {
-  attr(acc_data$timestamp,"tzone")
-}
-
-calc_mag_ <- function(acc_data) {
-  acc_data %>%
-    tsibble::as_tibble() %>%
-    select(starts_with("axis")) %>%
-    purrr::pmap_dbl(~sqrt(sum(c(...) ^ 2)))
-}
-
-add_mag_ <- function(acc_data, magnitude = "magnitude") {
-  mutate(acc_data, !!magnitude := calc_mag_(acc_data))
+  attr(acc_data$timestamp, "tzone")
 }
 
 set_attr_ <- function(x, which, value) {
   `attr<-`(x, which, value)
+}
+
+set_acc_attr_ <- function(x, type, ...) {
+  set_attr_(x,
+            "acc",
+            list(type = type, parameters = list2(...)))
+}
+
+get_acc_type_ <- function(x) {
+  attr(x, "acc")$type
+}
+
+is_acc_type_ <- function(acc_data, type) {
+  map_lgl(acc_data, ~get_acc_type_(.x) %in% type)
+}
+
+name_acc_type_ <- function(acc_data, type) {
+  names(acc_data)[is_acc_type_(acc_data, type)]
 }
 
 reset_acc_attr_ <- function(new_data, old_data) {
@@ -63,7 +70,7 @@ mutate_acc_ <- function(.data, ...) {
 
 expand_periods_ <- function(acc_data, periods) {
   purrr::map2(periods$.from, periods$.to,
-              ~with(acc_data, .x >= timestamp & .y < timestamp)) %>%
+              ~with(acc_data, timestamp < .y & .x <= timestamp)) %>%
     purrr::pmap_lgl(function(...) any(...))
 }
 

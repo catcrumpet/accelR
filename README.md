@@ -23,7 +23,8 @@ devtools::install_github("catcrumpet/accelR")
 library(accelR)
 ```
 
-### Read in accelerometer data from an Actigraph device (i.e., a \*.agd file). In this case, the data was collected in Los Angeles, so the timezone is set appropriately.
+### Read in accelerometer data from an ActiGraph (\*.agd) file . 
+In this case, the data was collected in Los Angeles, so the timezone is set appropriately.
 ```r
 good_data <- read_agd("catcrumpet_data.agd", tz = "America/Los_Angeles")
 ```
@@ -58,7 +59,8 @@ Data need to pass several checks:
 
 Currently there are no tools to fix these issues, but these are in development.
 
-### Add a column for nonwear, we will use a modified Troiano approach that is more strict with no spikes.
+### Add a column for nonwear.
+We will use a modified Troiano approach that is more strict with no spikes. This can be done by setting the argument `spike_tolerance = 0`.
 ```r
 better_data <- add_nonwear_troiano(good_data, spike_tolerance = 0)
 ```
@@ -81,7 +83,8 @@ better_data <- add_nonwear_troiano(good_data, spike_tolerance = 0)
 # … with 1,071 more rows
 ```
 
-### Add a column for physical activity category. The default is to use Troiano cutpoints. In this case, the person is 12 years old.
+### Add a column for physical activity category.
+The default is to use Troiano age-based cutpoints. In this case, the person is 12 years old and the appropriate age-based cutpoints are chosen automatically.
 ```r
 best_data <- add_pa_category(better_data, age = 12)
 ```
@@ -106,4 +109,3 @@ Finally, `best_data` should look something like this:
 
 ## Final notes
 - I'm still learning how to document this, so references will be added in. I borrowed heavily from the work of other people and their attributions are due.
-- Using the tidy verbs `mutate` or `select` will remove the necessary attribute data necessary for some of the calculations. If you need to run `mutate`, you can use the internal function `accelR:::mutate_acc_` which will preserve these attributes. This is not recommended, however.

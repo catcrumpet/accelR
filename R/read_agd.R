@@ -10,9 +10,14 @@ read_agd <- function(file, tz = "UTC") {
 
     agd_data_raw <- read_agd_raw_(file, tz)
 
+    assert_that(nrow(agd_data_raw$settings) == 1)
+
     acc_data <-
         agd_data_raw$data %>%
         tsibble::as_tsibble(index = timestamp) %>%
+        mutate_at(vars(timestamp), set_acc_attr_, "timestamp") %>%
+        mutate_at(vars(starts_with("axis")), set_acc_attr_, "axis") %>%
+        mutate_at(vars(-timestamp, -starts_with("axis")), set_acc_attr_, "data") %>%
         set_attr_("type", "actigraph") %>%
         set_attr_("settings", agd_data_raw$settings)
 
@@ -51,12 +56,10 @@ read_agd_raw_ <- function(file, tz = "UTC") {
         mutate_at(vars(matches("dateOfBirth"),
                        ends_with("time"),
                        ends_with("date")),
-                  ~time_convert_(., tz = tz)) %>%
+                  ~convert_time_agd_(., tz = tz)) %>%
         select(pull(tbl(db, "settings"), settingName)) %>%
         rename_all(~tolower(stringr::str_replace_all(., "\\s", "_"))) %>%
         mutate_at(vars(starts_with("epoch")), as.integer)
-
-    assert_that(nrow(settings) == 1)
 
     data <-
         db %>%
@@ -64,13 +67,13 @@ read_agd_raw_ <- function(file, tz = "UTC") {
         collect() %>%
         rename_all(tolower) %>%
         rename(timestamp = datatimestamp) %>%
-        mutate(timestamp = time_convert_(timestamp, tz = tz)) %>%
+        mutate(timestamp = convert_time_agd_(timestamp, tz = tz)) %>%
         mutate_if(is.numeric, as.integer)
 
     list(data = data, settings = settings)
 }
 
-time_convert_ <- function(time, tz) {
+convert_time_agd_ <- function(time, tz) {
     anytime::anytime(time / 1e+07 - 62135596800, tz = tz)
     # as.POSIXct(time / 1e7, origin = "0001-01-01 00:00:00", tz = tz)
 }

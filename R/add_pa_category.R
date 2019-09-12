@@ -15,11 +15,11 @@
 #' ActiGraph settings are stored as a tibble in the settings attribute.
 #' @export
 add_pa_category <- function(acc_data,
-                   age = NA,
-                   cut_params = pacuts_troiano,
-                   use_magnitude = FALSE,
-                   add_age = FALSE,
-                   pa = "pa") {
+                            age = NA,
+                            cut_params = pacuts_troiano,
+                            use_magnitude = FALSE,
+                            add_age = FALSE,
+                            pa = "pa") {
   if (is.na(age) & is.na(get_setting(acc_data, "age"))) {
     stop("Valid age must be provided.")
   } else if (!is.na(get_setting(acc_data, "age"))) {
@@ -28,20 +28,34 @@ add_pa_category <- function(acc_data,
   }
 
   if (is.character(add_age)) {
-    age_var <- add_age
+    age_varname <- add_age
     add_age <- TRUE
   } else if (add_age) {
-    age_var <- "age"
+    age_varname <- "age"
   }
+
+  if (use_magnitude) {
+    acc_data <- use_magnitude_(acc_data)
+    counts_var <- name_acc_type_(acc_data, "magnitude")
+    assert_that(length(counts_var) == 1,
+                msg = "More than one extant magnitude column.")
+  } else {
+    counts_var <- "axis1"
+  }
+
+  pa_args <-
+    list(counts = acc_data[[counts_var]],
+         epoch_len = get_epochlength(acc_data),
+         age = age,
+         cut_params = cut_params(age))
 
   acc_data %>%
     {
-      if (add_age) mutate_acc_(., !!age_var := !!age) else .
+      if (add_age) mutate_acc_(., !!age_varname := !!age) else .
     } %>%
-    mutate_acc_(!!pa := calculate_pa_category(x = if (!!use_magnitude) calc_mag_(.) else axis1,
-                                              epoch_len = get_epochlength(.),
-                                              age = !!age,
-                                              cut_params = !!cut_params))
+    mutate_acc_(!!pa :=
+                  categorize_pa(!!!pa_args) %>%
+                  set_acc_attr_("pa", !!!pa_args[-1]))
 }
 
 #' Calculate PA category
@@ -54,8 +68,8 @@ add_pa_category <- function(acc_data,
 #' @param cut_params Cut parameters, default is Troiano cut parameters.
 #' @return An ordinal vector of the same length as \code{x}.
 #' @export
-calculate_pa_category <- function(x, epoch_len, age, cut_params = pacuts_troiano) {
-  purrr::lift(cut)(c(x = list(x * (60L / epoch_len)), cut_params(age)))
+categorize_pa <- function(counts, epoch_len, age, cut_params = pacuts_troiano(age)) {
+  purrr::lift(cut)(c(x = list(counts * (60L / epoch_len)), cut_params))
 }
 
 #' Cut parameters for Troiano
@@ -79,9 +93,12 @@ pacuts_troiano <- function(age) {
             age == 17 ~ c(3239, 6751),
             age >= 18 ~ c(2020, 5999)) %>%
     {c(0, 100, ., 16000, Inf)} %>%
-    list(breaks = .,
-         labels = c("sed", "lig", "mod", "vig", "ext"),
-         include.lowest = TRUE,
-         right = FALSE,
-         ordered_result = TRUE)
+    {
+      list(name = "troiano",
+           breaks = .,
+           labels = c("sed", "lig", "mod", "vig", "ext"),
+           include.lowest = TRUE,
+           right = FALSE,
+           ordered_result = TRUE)
+    }
 }
