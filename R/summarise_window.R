@@ -1,9 +1,9 @@
 #' @export
-summarise_window <- function(acc_data, anchor_time, window,
+summarise_window <- function(acc_data,
+                             anchor_time,
+                             window,
                              use_magnitude = FALSE) {
-
   epoch_len <- get_epochlength(acc_data)
-  epochs_min <- 60L / epoch_len
 
   counts_var <- "axis1"
   if (use_magnitude) {

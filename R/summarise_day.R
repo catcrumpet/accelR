@@ -1,8 +1,6 @@
 #' @export
 summarise_day <- function(acc_data, use_magnitude = FALSE) {
-
   epoch_len <- get_epochlength(acc_data)
-  epochs_min <- 60L / epoch_len
 
   counts_var <- "axis1"
   if (use_magnitude) {
