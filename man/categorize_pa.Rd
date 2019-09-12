@@ -4,7 +4,7 @@
 \alias{categorize_pa}
 \title{Calculate PA category}
 \usage{
-categorize_pa(counts, epoch_len, age, cut_params = pacuts_troiano)
+categorize_pa(counts, epoch_len, age, cut_params = pacuts_troiano(age))
 }
 \arguments{
 \item{epoch_len}{Epoch length in seconds.}

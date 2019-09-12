@@ -12,10 +12,11 @@
 #' @importFrom dplyr mutate mutate_at mutate_if mutate_all
 #' @importFrom dplyr transmute transmute_at transmute_if
 #' @importFrom dplyr summarise summarise_at summarise_if
-#' @importFrom dplyr arrange distinct group_by
-#' @importFrom dplyr tbl pull collect
+#' @importFrom dplyr arrange distinct group_by ungroup
+#' @importFrom dplyr tbl pull collect do count
 #' @importFrom dplyr vars starts_with ends_with matches
 #' @importFrom dplyr n first last row_number lag lead if_else case_when na_if
+#' @importFrom dplyr bind_rows bind_cols
 #' @importFrom magrittr %>%
 #' @importFrom rlang list2 !! !!! has_name
 NULL

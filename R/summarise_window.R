@@ -5,27 +5,7 @@ summarise_window <- function(acc_data,
                              use_magnitude = FALSE) {
   epoch_len <- get_epochlength(acc_data)
 
-  counts_var <- "axis1"
-  if (use_magnitude) {
-    acc_data <- use_magnitude_(acc_data)
-    counts_var <- name_acc_type_(acc_data, "magnitude")
-    assert_that(length(counts_var) == 1,
-                msg = "More than one extant magnitude column.")
-  }
 
-  pa_var <- name_acc_type_(acc_data, "pa")
-  if (length(pa_var) == 0) {
-    stop("PA category column is missing.")
-  } else if (length(pa_var) > 1) {
-    stop("More than 1 PA category column.")
-  }
-
-  nonvalid_var <- name_acc_type_(acc_data, c("nonwear", "nonvalid"))
-  if (length(nonvalid_var) == 0) {
-    nonvalid <- rep(FALSE, nrow(acc_data))
-  } else {
-    nonvalid <- pmap_lgl(acc_data[, nonvalid_var], ~any(...))
-  }
 
   assert_that(lubridate::is.POSIXct(anchor_time) & length(anchor_time) == 1,
               msg = "Anchor time must be a POSIXct object of length 1.")
@@ -36,12 +16,10 @@ summarise_window <- function(acc_data,
   time_boundaries <- anchor_time + lubridate::minutes(win_list$win_vec)
 
   window_summary <-
-    acc_data %>%
-    as_tibble() %>%
-    select(timestamp, counts = !!counts_var, pa = !!pa_var) %>%
-    mutate(valid = !nonvalid) %>%
+    make_data_(acc_data, use_magnitude) %>%
     filter(timestamp >= time_boundaries[[1]], timestamp < time_boundaries[[2]]) %>%
-    with(summarise_chunk_(timestamp, counts, pa, valid, epoch_len))
+    make_data_(use_magnitude) %>%
+    summarise_chunk_(epoch_len)
 
   tibble(anchor_time = anchor_time,
          window_start = win_list$win_vec[[1]],
@@ -77,8 +55,11 @@ convert_window_ <- function(window) {
 }
 
 summarise_window_fast_ <- function(data, epoch_len, anchor_time, window_left, window_right) {
+  # Very much trimmed down version for batch processing of data.
+  # data needs to have timestamp (POSIXct), counts (numeric), pa (ordinal), and valid (logical)
+
   data %>%
     filter(timestamp >= (anchor_time + lubridate::minutes(window_left)),
            timestamp < (anchor_time + lubridate::minutes(window_right))) %>%
-    with(summarise_chunk_(timestamp, counts, pa, valid, epoch_len))
+    summarise_chunk_(epoch_len)
 }

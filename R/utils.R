@@ -50,7 +50,7 @@ get_acc_type_ <- function(x) {
 }
 
 is_acc_type_ <- function(acc_data, type) {
-  map_lgl(acc_data, ~get_acc_type_(.x) %in% type)
+  purrr::map_lgl(acc_data, ~get_acc_type_(.x) %in% type)
 }
 
 name_acc_type_ <- function(acc_data, type) {

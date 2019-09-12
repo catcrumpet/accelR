@@ -1,11 +1,5 @@
-summarise_chunk_ <- function(timestamp, counts, pa, valid, epoch_len) {
+summarise_chunk_ <- function(data, epoch_len) {
   epochs_min <- 60L / epoch_len
-
-  data <-
-    tibble(timestamp = timestamp,
-           counts = counts,
-           pa = pa,
-           valid = valid)
 
   output_total <-
     data %>%
@@ -33,7 +27,7 @@ summarise_chunk_ <- function(timestamp, counts, pa, valid, epoch_len) {
       mutate(n = n / epochs_min) %>%
       tidyr::spread(pa, n) %>%
       rename_at(vars(-valid), ~stringr::str_c(., "m", sep = "_")) %>%
-      mutate_at(vars(-valid), ~ replace_na(., 0)) %>%
+      mutate_at(vars(-valid), ~tidyr::replace_na(., 0)) %>%
       filter(valid) %>%
       select(-valid)
 
@@ -44,7 +38,7 @@ summarise_chunk_ <- function(timestamp, counts, pa, valid, epoch_len) {
       ungroup() %>%
       tidyr::spread(pa, counts) %>%
       rename_at(vars(-valid), ~stringr::str_c(., "c", sep = "_")) %>%
-      mutate_at(vars(-valid), ~ replace_na(., 0)) %>%
+      mutate_at(vars(-valid), ~tidyr::replace_na(., 0)) %>%
       filter(valid) %>%
       select(-valid)
 
@@ -55,4 +49,33 @@ summarise_chunk_ <- function(timestamp, counts, pa, valid, epoch_len) {
   } else {
     output_total
   }
+}
+
+make_data_ <- function(acc_data, use_magnitude) {
+  counts_var <- "axis1"
+  if (use_magnitude) {
+    acc_data <- use_magnitude_(acc_data)
+    counts_var <- name_acc_type_(acc_data, "magnitude")
+    assert_that(length(counts_var) == 1,
+                msg = "More than one extant magnitude column.")
+  }
+
+  pa_var <- name_acc_type_(acc_data, "pa")
+  if (length(pa_var) == 0) {
+    stop("PA category column is missing.")
+  } else if (length(pa_var) > 1) {
+    stop("More than 1 PA category column.")
+  }
+
+  nonvalid_var <- name_acc_type_(acc_data, c("nonwear", "nonvalid"))
+  if (length(nonvalid_var) == 0) {
+    nonvalid <- rep(FALSE, nrow(acc_data))
+  } else {
+    nonvalid <- purrr::pmap_lgl(acc_data[, nonvalid_var], ~any(...))
+  }
+
+  acc_data %>%
+    tibble::as_tibble() %>%
+    select(timestamp, counts = !!counts_var, pa = !!pa_var) %>%
+    mutate(valid = !nonvalid)
 }
