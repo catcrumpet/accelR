@@ -55,7 +55,7 @@ add_pa_category <- function(acc_data,
     } %>%
     mutate_acc_(!!pa :=
                   categorize_pa(!!!pa_args) %>%
-                  set_acc_attr_("pa", !!!pa_args[-1]))
+                  set_acc_attr_("pa", !!!pa_args[-1], use_magnitude = use_magnitude))
 }
 
 #' Calculate PA category

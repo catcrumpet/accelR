@@ -1,5 +1,25 @@
 #' @export
-add_nonvalid <- function(acc_data, ...) {
+add_valid <- function(acc_data, valid = "valid") {
+  nonvalid_var <- name_acc_type_(acc_data, c("nonwear", "nonvalid"))
+
+  acc_data %>%
+    mutate_acc_(!!valid :=
+                  !calculate_nonvalid_(acc_data) %>%
+                  set_acc_attr_("valid", components = nonvalid_var))
+}
+
+calculate_nonvalid_ <- function(acc_data) {
+  nonvalid_var <- name_acc_type_(acc_data, c("nonwear", "nonvalid"))
+  if (length(nonvalid_var) == 0) {
+    message("No extant nonwear/nonvalid columns in data.")
+    rep(FALSE, nrow(acc_data))
+  } else {
+    purrr::pmap_lgl(acc_data[, nonvalid_var], ~any(...))
+  }
+}
+
+#' @export
+mutate_acc_nonvalid <- function(acc_data, ...) {
   expr_list <- enquos(...)
 
   expr_names <- as.character(get_expr(expr_list))
