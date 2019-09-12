@@ -107,5 +107,12 @@ Finally, `best_data` should look something like this:
 # … with 1,071 more rows
 ```
 
+### Summarize the data.
+This is still a work in progress. Currently, two functions are provided:
+- `summarise_day`
+- `summarise_window`
+
+I will talk about these in the future.
+
 ## Final notes
 - I'm still learning how to document this, so references will be added in. I borrowed heavily from the work of other people and their attributions are due.
