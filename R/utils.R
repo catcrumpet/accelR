@@ -69,6 +69,10 @@ name_acc_type_ <- function(acc_data, type) {
   names(acc_data)[is_acc_type_(acc_data, type)]
 }
 
+count_acc_type_ <- function(acc_data, type) {
+  sum(is_acc_type_(acc_data, type), na.rm = TRUE)
+}
+
 reset_acc_attr_ <- function(new_data, old_data) {
   c("type", "settings") %>%
     purrr::map(~function(new, old) set_attr_(new, .x, attr(old, .x))) %>%
@@ -78,6 +82,10 @@ reset_acc_attr_ <- function(new_data, old_data) {
 
 mutate_acc_ <- function(.data, ...) {
   reset_acc_attr_(mutate(.data, ...), .data)
+}
+
+mutate_at_acc_ <- function(.tbl, .vars, .funs, ..., .cols = NULL) {
+  reset_acc_attr_(mutate_at(.tbl, .vars, .funs, ..., .cols = .cols), .tbl)
 }
 
 expand_periods_ <- function(acc_data, periods) {

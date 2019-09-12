@@ -73,16 +73,13 @@ make_data_ <- function(acc_data, use_magnitude) {
                 msg = "More than one extant magnitude column.")
   }
 
-  nonvalid_var <- name_acc_type_(acc_data, c("nonwear", "nonvalid"))
+  valid_var <- name_acc_type_(acc_data, c("valid"))
   if (length(nonvalid_var) == 0) {
-    message("No extant nonwear/nonvalid columns in data.")
-    nonvalid <- rep(FALSE, nrow(acc_data))
-  } else {
-    nonvalid <- purrr::pmap_lgl(acc_data[, nonvalid_var], ~any(...))
+    valid <- calculate_nonvalid_(acc_data)
   }
 
   acc_data %>%
     tibble::as_tibble() %>%
     select(timestamp, counts = !!counts_var, pa = !!pa_var) %>%
-    mutate(valid = !nonvalid)
+    mutate(valid = !!valid)
 }
