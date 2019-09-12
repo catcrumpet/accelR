@@ -69,6 +69,7 @@ make_data_ <- function(acc_data, use_magnitude) {
 
   nonvalid_var <- name_acc_type_(acc_data, c("nonwear", "nonvalid"))
   if (length(nonvalid_var) == 0) {
+    message("No extant nonwear/nonvalid columns in data.")
     nonvalid <- rep(FALSE, nrow(acc_data))
   } else {
     nonvalid <- purrr::pmap_lgl(acc_data[, nonvalid_var], ~any(...))

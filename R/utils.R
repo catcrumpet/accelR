@@ -35,6 +35,18 @@ get_timezone <- function(acc_data) {
   attr(acc_data$timestamp, "tzone")
 }
 
+#' Get timezone of accelerometer data
+#'
+#' @param acc_data Accelerometer tsibble object.
+#' @param tz Timezone to change to.
+#' @return Accelerometer data with updated timezone.
+#' @export
+change_timezone <- function(acc_data, tz = Sys.timezone()) {
+  assert_that(tz %in% OlsonNames())
+  attr(acc_data$timestamp, "tzone") <- tz
+  acc_data
+}
+
 set_attr_ <- function(x, which, value) {
   `attr<-`(x, which, value)
 }

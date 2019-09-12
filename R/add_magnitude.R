@@ -17,6 +17,7 @@ use_magnitude_ <- function(acc_data) {
   if (any(is_acc_type_(acc_data, "magnitude"))) {
     acc_data
   } else {
+    message("No extant magnitude column. Adding to data.")
     add_magnitude(acc_data)
   }
 }
