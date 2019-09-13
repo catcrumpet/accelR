@@ -152,7 +152,7 @@ $ ext_c         <dbl> 0
 
 `anchor_time` is the base time around which `window` (in minutes) operates around. `anchor_time` must be a POSIXct object, which is typically used to represent datetime objects. `lubridate::ymd_hms` can easily parse datetime strings into POSIXct objects.
 
-`window` denotes the window around `anchor_time` in whole minutes (no fractions). `window` can be a numeric vector of length 1 or 2 and can contain negative numbers. A window of a single negative number will cover the period of those minutes prior to the `anchor_time` up to the `anchor_time`. A window of a single positive number will cover the period from the `anchor_time` to the specified minutes. A window of two numbers will cover the period from the left side to the right side.
+`window` denotes the window around `anchor_time` in whole minutes (no fractions). `window` must be a numeric vector of length 1 or 2 and can contain negative numbers. A window of a single negative number will cover the period of those minutes prior to the `anchor_time` up to the `anchor_time`. A window of a single positive number will cover the period from the `anchor_time` to the specified minutes. A window of two numbers will cover the period from the left side to the right side.
 
 For example, the following uses an `anchor_time` of 2017-11-30 01:30:00 (1:30 AM on November 30, 2017) in Los Angeles time and a window of 5 minutes before and 5 minutes after this time:
 ```r
