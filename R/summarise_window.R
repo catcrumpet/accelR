@@ -24,8 +24,8 @@ summarise_window <- function(acc_data,
            time_stop = time_boundaries[[2]])
 
   data <-
-    make_data_(acc_data, use_magnitude) %>%
-    filter(timestamp >= time_boundaries[[1]], timestamp < time_boundaries[[2]])
+    acc_data %>%
+    filter_acc_(timestamp >= time_boundaries[[1]], timestamp < time_boundaries[[2]])
 
   if (nrow(data) > 0) {
     window_summary <-
