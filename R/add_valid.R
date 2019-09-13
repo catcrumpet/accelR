@@ -1,11 +1,25 @@
 #' @export
-add_valid <- function(acc_data, valid = "valid") {
-  nonvalid_var <- name_acc_type_(acc_data, c("nonwear", "nonvalid"))
-
-  acc_data %>%
-    mutate_acc_(!!valid :=
+add_valid <- function(acc_data, expression, valid = "valid") {
+  if (missing(expression)) {
+    mutate_acc_(acc_data,
+                !!valid :=
                   !calculate_nonvalid_(acc_data) %>%
-                  set_acc_attr_("valid", components = nonvalid_var))
+                  set_acc_attr_("valid",
+                                components = name_acc_type_(acc_data,
+                                                            c("nonwear", "nonvalid"))))
+  } else {
+    rlang::enquo(expression) %>%
+      {
+          set_acc_attr_(rlang::eval_tidy(., data = acc_data),
+                        "nonvalid",
+                        expression = as.character(rlang::get_expr(.)))
+      } %>%
+      {
+        assert_that(is.logical(.),
+                    msg = "Expression must evaluate to a logical vector.")
+        mutate_acc_(acc_data, !!valid := .)
+      }
+  }
 }
 
 calculate_nonvalid_ <- function(acc_data) {
@@ -20,24 +34,14 @@ calculate_nonvalid_ <- function(acc_data) {
 
 #' @export
 mutate_acc_nonvalid <- function(acc_data, ...) {
-  expr_list <- rlang::enquos(...)
-
-  expr_labels <- as.character(rlang::get_expr(expr_list))
-
-  assert_that(all(!names(expr_list) %in% names(acc_data)),
-              msg = "Variables already exist in original data.")
-
-  output <- map(expr_list, eval_tidy, data = acc_data)
-
-  assert_that(all(purrr::map_lgl(output, is.logical)),
-              msg = "Nonvalid expressions must evaluate to a logical vector.")
-
-  output %>%
-    purrr::map2_dfc(expr_labels,
-                    ~set_acc_attr_(.x,
-                                   "nonvalid",
-                                   expression = .y)) %>%
-    {bind_cols(acc_data, .)}
+  rlang::enquos(...) %>%
+    purrr::map2(as.character(rlang::get_expr(.)),
+                ~rlang::eval_tidy(.x, data = acc_data) %>%
+                  set_acc_attr_("nonvalid", expression = .y)) %>%
+    {
+      assert_that(all(purrr::map_lgl(., is.logical)),
+                  msg = "Nonvalid expressions must evaluate to a logical vector.")
+      mutate_acc_(acc_data, !!!.)
+    }
 }
-
 
