@@ -37,6 +37,13 @@ check_data_epochlength <- function(acc_data) {
   invisible(TRUE)
 }
 
+check_data_epochcount <- function(acc_data) {
+  if (nrow(acc_data) != get_setting(acc_data, "epochcount")) {
+    stop("Actual epoch count does not match recorded epoch count.")
+  }
+  invisible(TRUE)
+}
+
 # chk_d_miss_
 check_data_missing <- function(acc_data, var) {
   if (anyNA(acc_data[[var]])) {
@@ -46,7 +53,7 @@ check_data_missing <- function(acc_data, var) {
 }
 
 # chk_d_names_
-check_data_names <- function(acc_data, var) {
+check_data_names <- function(acc_data) {
   assert_that(has_name(acc_data, "timestamp"),
               msg = "Data missing timestamp column.")
   assert_that(has_name(acc_data, "axis1"),
@@ -54,4 +61,20 @@ check_data_names <- function(acc_data, var) {
   invisible(TRUE)
 }
 
+check_data_integrity <- function(acc_data) {
+  assert_that(tsibble::is_tsibble(acc_data), msg = "Data must be a tsibble.")
 
+  check_data_gaps(acc_data)
+  check_data_missing(acc_data)
+  check_data_epochlength(acc_data)
+  check_data_names(acc_data)
+
+  assert_that(count_acc_type_(acc_data, "pa") <= 1,
+              msg = "More than one extant PA category column.")
+
+  assert_that(count_acc_type_(acc_data, "magnitude") <= 1,
+              msg = "More than one extant magnitude category column.")
+
+  assert_that(count_acc_type_(acc_data, "valid") <= 1,
+              msg = "More than one extant valid column.")
+}
