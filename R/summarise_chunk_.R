@@ -60,7 +60,7 @@ make_data_ <- function(acc_data, use_magnitude) {
     stop("More than 1 PA category column.")
   }
 
-  if (attr(acc_data[[pa_var]], "parameters")$use_magnitude & !use_magnitude) {
+  if (attr(acc_data[[pa_var]], "acc")$parameters$use_magnitude & !use_magnitude) {
     warning("PA column relied on magnitude column. Using magnitude.")
     use_magnitude <- TRUE
   }
@@ -74,7 +74,7 @@ make_data_ <- function(acc_data, use_magnitude) {
   }
 
   valid_var <- name_acc_type_(acc_data, c("valid"))
-  if (length(nonvalid_var) == 0) {
+  if (length(valid_var) == 0) {
     valid <- calculate_nonvalid_(acc_data)
   }
 
