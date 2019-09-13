@@ -195,5 +195,7 @@ $ vig_c         <dbl> 0
 $ ext_c         <dbl> 0
 ```
 
+One final note on this, if the window period falls outside the data entirely, then the function will bypass calculating the summaries for the PA categories.
+
 ## Final notes
 - I'm still learning how to document this, so references will be added in. I borrowed heavily from the work of other people and their attributions are due.
