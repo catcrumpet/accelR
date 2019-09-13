@@ -2,8 +2,8 @@
 .Rhistory
 .RData
 .Ruserdata
-.agd
-.rds
+*.agd
+*.rds
 src/*.o
 src/*.so
 src/*.dll
