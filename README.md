@@ -112,7 +112,88 @@ This is still a work in progress. Currently, two functions are provided:
 - `summarise_day`
 - `summarise_window`
 
-I will talk about these in the future.
+`summarise_day` will summarize (note the 's' in the function) the data by day automatically.
+
+```r
+day_summary <- summarise_day(best_data)
+```
+
+The results provide a lot of different values in a table, so `dplyr::glimpse` can be used to get quick idea of what's going on.
+```r
+dplyr::glimpse(day_summary)
+```
+
+```
+Observations: 1
+Variables: 20
+$ date          <date> 2017-11-30
+$ timestamp_min <dttm> 2017-11-30
+$ timestamp_max <dttm> 2017-11-30 03:00:00
+$ epoch_length  <int> 10
+$ total_e       <int> 1081
+$ total_m       <dbl> 180.1667
+$ total_c       <int> 77687
+$ valid_e       <int> 449
+$ valid_m       <dbl> 74.83333
+$ valid_c       <int> 0
+$ sed_m         <dbl> 74.83333
+$ lig_m         <dbl> 0
+$ mod_m         <dbl> 0
+$ vig_m         <dbl> 0
+$ ext_m         <dbl> 0
+$ sed_c         <dbl> 0
+$ lig_c         <dbl> 0
+$ mod_c         <dbl> 0
+$ vig_c         <dbl> 0
+$ ext_c         <dbl> 0
+```
+
+`summarise_window` is a much more specialized function which takes in 2 necessary arguments in addition to the accelerometer data: `anchor_time` and `window`.
+
+`anchor_time` is the base time around which `window` (in minutes) operates around. `anchor_time` must be a POSIXct object, which is typically used to represent datetime objects. `lubridate::ymd_hms` can easily parse datetime strings into POSIXct objects.
+
+`window` denotes the window around `anchor_time` in whole minutes (no fractions). `window` can be a numeric vector of length 1 or 2 and can contain negative numbers. A window of a single negative number will cover the period of those minutes prior to the `anchor_time` up to the `anchor_time`. A window of a single positive number will cover the period from the `anchor_time` to the specified minutes. A window of two numbers will cover the period from the left side to the right side.
+
+For example, the following uses an `anchor_time` of 2017-11-30 01:30:00 (1:30 AM on November 30, 2017) in Los Angeles time and a window of 5 minutes before and 5 minutes after this time:
+```r
+window_summary <- 
+   summarise_window(best_data, 
+                    anchor_time = lubridate::ymd_hms("2017-11-30 01:30:00", 
+                                                     tz = "America/Los_Angeles"), 
+                    window = c(-5, 5))
+
+dplyr::glimpse(window_summary)
+```
+
+```
+Observations: 1
+Variables: 25
+$ anchor_time   <dttm> 2017-11-30 01:30:00
+$ window_start  <dbl> -5
+$ window_stop   <dbl> 5
+$ window_length <int> 10
+$ time_start    <dttm> 2017-11-30 01:25:00
+$ time_stop     <dttm> 2017-11-30 01:35:00
+$ timestamp_min <dttm> 2017-11-30 01:25:00
+$ timestamp_max <dttm> 2017-11-30 01:34:50
+$ epoch_length  <int> 10
+$ total_e       <int> 60
+$ total_m       <dbl> 10
+$ total_c       <int> 694
+$ valid_e       <int> 18
+$ valid_m       <dbl> 3
+$ valid_c       <int> 0
+$ sed_m         <dbl> 3
+$ lig_m         <dbl> 0
+$ mod_m         <dbl> 0
+$ vig_m         <dbl> 0
+$ ext_m         <dbl> 0
+$ sed_c         <dbl> 0
+$ lig_c         <dbl> 0
+$ mod_c         <dbl> 0
+$ vig_c         <dbl> 0
+$ ext_c         <dbl> 0
+```
 
 ## Final notes
 - I'm still learning how to document this, so references will be added in. I borrowed heavily from the work of other people and their attributions are due.
