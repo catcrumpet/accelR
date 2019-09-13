@@ -15,19 +15,27 @@ summarise_window <- function(acc_data,
   # create look_vec: length(ISOdatetime()) == 2
   time_boundaries <- anchor_time + lubridate::minutes(win_list$win_vec)
 
-  window_summary <-
-    make_data_(acc_data, use_magnitude) %>%
-    filter(timestamp >= time_boundaries[[1]], timestamp < time_boundaries[[2]]) %>%
-    make_data_(use_magnitude) %>%
-    summarise_chunk_(epoch_len)
+  output <-
+    tibble(anchor_time = anchor_time,
+           window_start = win_list$win_vec[[1]],
+           window_stop = win_list$win_vec[[2]],
+           window_length = win_list$win_len[[1]],
+           time_start = time_boundaries[[1]],
+           time_stop = time_boundaries[[2]])
 
-  tibble(anchor_time = anchor_time,
-         window_start = win_list$win_vec[[1]],
-         window_stop = win_list$win_vec[[2]],
-         window_length = win_list$win_len[[1]],
-         time_start = time_boundaries[[1]],
-         time_stop = time_boundaries[[2]]) %>%
-    bind_cols(window_summary) %>%
+  data <-
+    make_data_(acc_data, use_magnitude) %>%
+    filter(timestamp >= time_boundaries[[1]], timestamp < time_boundaries[[2]])
+
+  if (nrow(data) > 0) {
+    window_summary <-
+      make_data_(data, use_magnitude) %>%
+      summarise_chunk_(epoch_len)
+
+    output <- bind_cols(output, window_summary)
+  }
+
+  output %>%
     set_acc_attr_("summary_window",
                   use_magnitude = use_magnitude)
 }
