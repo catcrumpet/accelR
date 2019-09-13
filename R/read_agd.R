@@ -17,7 +17,8 @@ read_agd <- function(file, tz = "UTC") {
         tsibble::as_tsibble(index = timestamp) %>%
         mutate_at(vars(timestamp), set_acc_attr_, "timestamp") %>%
         mutate_at(vars(starts_with("axis")), set_acc_attr_, "axis") %>%
-        mutate_at(vars(-timestamp, -starts_with("axis")), set_acc_attr_, "data") %>%
+        mutate_at(vars(-timestamp, -starts_with("axis")),
+                  set_acc_attr_, "data") %>%
         set_attr_("type", "actigraph") %>%
         set_attr_("settings", agd_data_raw$settings)
 
@@ -25,6 +26,7 @@ read_agd <- function(file, tz = "UTC") {
                 tsibble::is_ordered(acc_data),
                 !tsibble::is_duplicated(acc_data, index = timestamp))
     check_data_epochlength(acc_data)
+    check_data_epochcount(acc_data)
     check_data_starttime(acc_data)
     check_data_stoptime(acc_data)
     check_data_gaps(acc_data)
