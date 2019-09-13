@@ -80,6 +80,19 @@ reset_acc_attr_ <- function(new_data, old_data) {
     {.(new_data, old_data)}
 }
 
+reset_acc_col_attr_ <- function(new_data, old_data) {
+  for (i in names(old_data)) {
+    new_data[[i]] <- set_attr_(new_data[[i]], "acc", attr(old_data[[i]], "acc"))
+  }
+  new_data
+}
+
+filter_acc_ <- function(.data, ..., .preserve = FALSE) {
+  filter(.data, ..., .preserve = .preserve) %>%
+    reset_acc_attr_(.data) %>%
+    reset_acc_col_attr_(.data)
+}
+
 mutate_acc_ <- function(.data, ...) {
   reset_acc_attr_(mutate(.data, ...), .data)
 }
