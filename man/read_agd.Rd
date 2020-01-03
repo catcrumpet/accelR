@@ -4,16 +4,17 @@
 \alias{read_agd}
 \title{Read accelerometer data from an *.agd file}
 \usage{
-read_agd(file, tz = "UTC")
+read_agd(file, tz = "UTC", settings = FALSE)
 }
 \arguments{
 \item{file}{Full path to an agd file to read.}
 
 \item{tz}{Time zone for the output data, converted from UTC (the default).}
+
+\item{settings}{Keep agd settings as an attribute?}
 }
 \value{
 A \code{tsibble} (\code{tbl_ts}) of accelerometer data with at least two columns: timestamp and axis1.
-ActiGraph settings are stored as a tibble in the settings attribute.
 }
 \description{
 Read ActiGraph accelerometer data from a database stored in an AGD file. Return a tsibble.

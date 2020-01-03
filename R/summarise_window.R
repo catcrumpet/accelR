@@ -1,14 +1,13 @@
 #' @export
 summarise_window <- function(acc_data,
+                             acc_values = "axis1",
+                             pa = "pa",
+                             invalid = "nonwear",
                              anchor_time,
-                             window,
-                             use_magnitude = FALSE) {
-  epoch_len <- get_epochlength(acc_data)
+                             window) {
 
-
-
-  assert_that(lubridate::is.POSIXct(anchor_time) & length(anchor_time) == 1,
-              msg = "Anchor time must be a POSIXct object of length 1.")
+  stopifnot(lubridate::is.POSIXct(anchor_time) & length(anchor_time) == 1)
+  # msg = "Anchor time must be a POSIXct object of length 1."
 
   win_list <- convert_window_(window)
 
@@ -25,19 +24,19 @@ summarise_window <- function(acc_data,
 
   data <-
     acc_data %>%
-    filter_acc_(timestamp >= time_boundaries[[1]], timestamp < time_boundaries[[2]])
+    rename(timestamp = tsibble::index(.)) %>%
+    filter(timestamp >= time_boundaries[[1]], timestamp < time_boundaries[[2]])
 
   if (nrow(data) > 0) {
     window_summary <-
-      make_data_(data, use_magnitude) %>%
-      summarise_chunk_(epoch_len)
+      data %>%
+      make_data_(acc_values, pa, invalid) %>%
+      summarise_chunk_(get_epochlength(data))
 
     output <- bind_cols(output, window_summary)
   }
 
-  output %>%
-    set_acc_attr_("summary_window",
-                  use_magnitude = use_magnitude)
+  output
 }
 
 convert_window_ <- function(window) {
@@ -52,22 +51,12 @@ convert_window_ <- function(window) {
       win_vec <- c(0L, window)
     }
   } else if (length(window) == 2) {
-    assert_that(window[[2]] > window[[1]])
+    stopifnot(window[[2]] > window[[1]])
     win_vec <- window
     win_len <- as.integer(win_vec[2] - win_vec[1])
   }
 
-  assert_that(win_len > 0)
+  stopifnot(win_len > 0)
 
   list(win_vec = win_vec, win_len = win_len)
-}
-
-summarise_window_fast_ <- function(data, epoch_len, anchor_time, window_left, window_right) {
-  # Very much trimmed down version for batch processing of data.
-  # data needs to have timestamp (POSIXct), counts (numeric), pa (ordinal), and valid (logical)
-
-  data %>%
-    filter(timestamp >= (anchor_time + lubridate::minutes(window_left)),
-           timestamp < (anchor_time + lubridate::minutes(window_right))) %>%
-    summarise_chunk_(epoch_len)
 }

@@ -1,11 +1,12 @@
 #' @export
-summarise_day <- function(acc_data, use_magnitude = FALSE) {
-  epoch_len <- get_epochlength(acc_data)
+summarise_day <- function(acc_data,
+                          acc_values = "axis1",
+                          pa = "pa",
+                          invalid = "nonwear") {
 
-  make_data_(acc_data, use_magnitude) %>%
+  make_data_(acc_data, acc_values, pa, invalid) %>%
     mutate(date = lubridate::date(timestamp)) %>%
     group_by(date) %>%
-    do(summarise_chunk_(data = ., !!epoch_len)) %>%
-    ungroup() %>%
-    set_acc_attr_("summary_day", use_magnitude = use_magnitude)
+    do(summarise_chunk_(data = ., get_epochlength(acc_data))) %>%
+    ungroup()
 }

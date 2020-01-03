@@ -1,18 +1,16 @@
 
 # chk_d_start_
-check_data_starttime <- function(acc_data) {
-  if (first(acc_data$timestamp) !=
-      get_setting(acc_data, "startdatetime")) {
+check_agddata_starttime <- function(agd_data, agd_settings) {
+  if (first(agd_data$timestamp) != agd_settings$startdatetime[[1]]) {
     stop("Data start time does not match setting start time.")
   }
   invisible(TRUE)
 }
 
 # chk_d_stop_
-check_data_stoptime <- function(acc_data) {
-  if ((last(acc_data$timestamp) +
-       lubridate::seconds(get_epochlength(acc_data))) !=
-      get_setting(acc_data, "stopdatetime")) {
+check_agddata_stoptime <- function(agd_data, agd_settings) {
+  if ((last(agd_data$timestamp) + lubridate::seconds(get_epochlength(agd_data))) !=
+      agd_settings$stopdatetime[[1]]) {
     stop("Data stop time does not match setting stop time.")
   }
   invisible(TRUE)
@@ -27,18 +25,18 @@ check_data_gaps <- function(acc_data) {
 }
 
 # chk_d_epoch_
-check_data_epochlength <- function(acc_data) {
-  if (get_epochlength(acc_data) != get_setting(acc_data, "epochlength")) {
+check_agddata_epochlength <- function(agd_data, agd_settings) {
+  if (get_epochlength(agd_data) != agd_settings$epochlength[[1]]) {
     stop("Epoch length does not match data interval.")
   }
-  if (60L %% get_epochlength(acc_data)) {
+  if (60L %% get_epochlength(agd_data)) {
     stop("Epochs should be exact divisors of 60.")
   }
   invisible(TRUE)
 }
 
-check_data_epochcount <- function(acc_data) {
-  if (nrow(acc_data) != get_setting(acc_data, "epochcount")) {
+check_agddata_epochcount <- function(agd_data, agd_settings) {
+  if (nrow(agd_data) != agd_settings$epochcount[[1]]) {
     stop("Actual epoch count does not match recorded epoch count.")
   }
   invisible(TRUE)
@@ -52,29 +50,17 @@ check_data_missing <- function(acc_data, var) {
   invisible(TRUE)
 }
 
-# chk_d_names_
-check_data_names <- function(acc_data) {
-  assert_that(has_name(acc_data, "timestamp"),
-              msg = "Data missing timestamp column.")
-  assert_that(has_name(acc_data, "axis1"),
-              msg = "Data missing axis1 column.")
+check_x_missing <- function(x) {
+  stopifnot(!anyNA(x))
   invisible(TRUE)
 }
 
-check_data_integrity <- function(acc_data) {
-  assert_that(tsibble::is_tsibble(acc_data), msg = "Data must be a tsibble.")
-
+check_data_presummary <- function(acc_data) {
   check_data_gaps(acc_data)
-  check_data_missing(acc_data)
-  check_data_epochlength(acc_data)
-  check_data_names(acc_data)
+  check_data_missing(acc_data, "timestamp")
+  check_data_missing(acc_data, "counts")
+  check_data_missing(acc_data, "pa")
+  check_data_missing(acc_data, "invalid")
 
-  assert_that(count_acc_type_(acc_data, "pa") <= 1,
-              msg = "More than one extant PA category column.")
-
-  assert_that(count_acc_type_(acc_data, "magnitude") <= 1,
-              msg = "More than one extant magnitude category column.")
-
-  assert_that(count_acc_type_(acc_data, "valid") <= 1,
-              msg = "More than one extant valid column.")
+  stopifnot(is.logical(acc_data$invalid))
 }

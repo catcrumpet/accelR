@@ -3,36 +3,36 @@
 #' Read ActiGraph accelerometer data from a database stored in an AGD file. Return a tsibble.
 #' @param file Full path to an agd file to read.
 #' @param tz Time zone for the output data, converted from UTC (the default).
+#' @param settings Keep agd settings as an attribute?
 #' @return A \code{tsibble} (\code{tbl_ts}) of accelerometer data with at least two columns: timestamp and axis1.
-#' ActiGraph settings are stored as a tibble in the settings attribute.
 #' @export
-read_agd <- function(file, tz = "UTC") {
+read_agd <- function(file, tz = "UTC", settings = FALSE) {
 
     agd_data_raw <- read_agd_raw_(file, tz)
 
     assert_that(nrow(agd_data_raw$settings) == 1)
 
-    acc_data <-
-        agd_data_raw$data %>%
-        tsibble::as_tsibble(index = timestamp) %>%
-        mutate_at(vars(timestamp), set_acc_attr_, "timestamp") %>%
-        mutate_at(vars(starts_with("axis")), set_acc_attr_, "axis") %>%
-        mutate_at(vars(-timestamp, -starts_with("axis")),
-                  set_acc_attr_, "data") %>%
-        set_attr_("type", "actigraph") %>%
-        set_attr_("settings", agd_data_raw$settings)
+    agd_data <- tsibble::as_tsibble(agd_data_raw$data, index = timestamp)
+    agd_settings <- agd_data_raw$settings
 
-    assert_that(tsibble::is_regular(acc_data),
-                tsibble::is_ordered(acc_data),
-                !tsibble::is_duplicated(acc_data, index = timestamp))
-    check_data_epochlength(acc_data)
-    check_data_epochcount(acc_data)
-    check_data_starttime(acc_data)
-    check_data_stoptime(acc_data)
-    check_data_gaps(acc_data)
-    check_data_names(acc_data)
+    assert_that(tsibble::is_regular(agd_data),
+                tsibble::is_ordered(agd_data),
+                !tsibble::is_duplicated(agd_data, index = timestamp))
 
-    acc_data
+
+
+    check_agddata_epochlength(agd_data, agd_settings)
+    check_agddata_epochcount(agd_data, agd_settings)
+    check_agddata_starttime(agd_data, agd_settings)
+    check_agddata_stoptime(agd_data, agd_settings)
+    check_data_gaps(agd_data)
+
+
+    if (settings) {
+        attr(agd_data, "agd_settings") <- agd_settings
+    }
+
+    agd_data
 }
 
 read_agd_raw_ <- function(file, tz = "UTC") {

@@ -3,7 +3,6 @@
 \docType{package}
 \name{accelR}
 \alias{accelR}
-\alias{accelR-package}
 \title{accelR}
 \description{
 accelR

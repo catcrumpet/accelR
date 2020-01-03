@@ -47,66 +47,15 @@ change_timezone <- function(acc_data, tz = Sys.timezone()) {
   acc_data
 }
 
-set_attr_ <- function(x, which, value) {
-  `attr<-`(x, which, value)
+format_v.POSIXct <- function(x) {
+  format.POSIXct(x, format = "%Y-%m-%d %H:%M:%S", usetz = TRUE)
 }
 
-set_acc_attr_ <- function(x, type, ...) {
-  set_attr_(x,
-            "acc",
-            list(type = type, parameters = list2(...)))
-}
-
-get_acc_type_ <- function(x) {
-  attr(x, "acc")$type
-}
-
-is_acc_type_ <- function(acc_data, type) {
-  purrr::map_lgl(acc_data, ~get_acc_type_(.x) %in% type)
-}
-
-name_acc_type_ <- function(acc_data, type) {
-  names(acc_data)[is_acc_type_(acc_data, type)]
-}
-
-count_acc_type_ <- function(acc_data, type) {
-  sum(is_acc_type_(acc_data, type), na.rm = TRUE)
-}
-
-reset_acc_attr_ <- function(new_data, old_data) {
-  c("type", "settings") %>%
-    purrr::map(~function(new, old) set_attr_(new, .x, attr(old, .x))) %>%
-    purrr::reduce(~function(new, old) .x(new, old) %>% .y(old)) %>%
-    {.(new_data, old_data)}
-}
-
-reset_acc_col_attr_ <- function(new_data, old_data) {
-  for (i in names(old_data)) {
-    new_data[[i]] <- set_attr_(new_data[[i]], "acc", attr(old_data[[i]], "acc"))
-  }
-  new_data
-}
-
-filter_acc_ <- function(.data, ..., .preserve = FALSE) {
-  filter(.data, ..., .preserve = .preserve) %>%
-    reset_acc_attr_(.data) %>%
-    reset_acc_col_attr_(.data)
-}
-
-mutate_acc_ <- function(.data, ...) {
-  reset_acc_attr_(mutate(.data, ...), .data)
-}
-
-mutate_at_acc_ <- function(.tbl, .vars, .funs, ..., .cols = NULL) {
-  reset_acc_attr_(mutate_at(.tbl, .vars, .funs, ..., .cols = .cols), .tbl)
-}
-
-expand_periods_ <- function(acc_data, periods) {
-  purrr::map2(periods$.from, periods$.to,
-              ~with(acc_data, timestamp < .y & .x <= timestamp)) %>%
-    purrr::pmap_lgl(function(...) any(...))
-}
-
-add_period_ <- function(acc_data, periods, varname) {
-  mutate_acc_(acc_data, !!varname := expand_periods_(acc_data, periods))
+standardize_data_ <- function(acc_data, timestamp, counts, pa, valid) {
+  acc_data %>%
+    as_tibble() %>%
+    transmute(timestamp = !!enquo(timestamp),
+              counts = !!enquo(counts),
+              pa = !!enquo(pa),
+              valid = !!enquo(valid))
 }
