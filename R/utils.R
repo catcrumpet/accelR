@@ -59,3 +59,7 @@ standardize_data_ <- function(acc_data, timestamp, counts, pa, valid) {
               pa = !!enquo(pa),
               valid = !!enquo(valid))
 }
+
+calculate_alpha_ <- function(x) {
+  1 + (1 / mean(log(x / min(x)), na.rm = TRUE))
+}

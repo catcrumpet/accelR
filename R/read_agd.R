@@ -12,27 +12,21 @@ read_agd <- function(file, tz = "UTC", settings = FALSE) {
 
     assert_that(nrow(agd_data_raw$settings) == 1)
 
-    agd_data <- tsibble::as_tsibble(agd_data_raw$data, index = timestamp)
+    acc_data <- tsibble::as_tsibble(agd_data_raw$data, index = timestamp)
     agd_settings <- agd_data_raw$settings
 
-    assert_that(tsibble::is_regular(agd_data),
-                tsibble::is_ordered(agd_data),
-                !tsibble::is_duplicated(agd_data, index = timestamp))
-
-
-
-    check_agddata_epochlength(agd_data, agd_settings)
-    check_agddata_epochcount(agd_data, agd_settings)
-    check_agddata_starttime(agd_data, agd_settings)
-    check_agddata_stoptime(agd_data, agd_settings)
-    check_data_gaps(agd_data)
-
+    check_data_integrity(acc_data)
+    check_agddata_epochlength(acc_data, agd_settings)
+    check_agddata_epochcount(acc_data, agd_settings)
+    check_agddata_starttime(acc_data, agd_settings)
+    check_agddata_stoptime(acc_data, agd_settings)
+    check_data_gaps(acc_data)
 
     if (settings) {
-        attr(agd_data, "agd_settings") <- agd_settings
+        attr(acc_data, "agd_settings") <- agd_settings
     }
 
-    agd_data
+    acc_data
 }
 
 read_agd_raw_ <- function(file, tz = "UTC") {

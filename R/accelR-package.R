@@ -5,7 +5,7 @@
 #' @useDynLib accelR, .registration = TRUE
 #' @importFrom assertthat assert_that has_attr
 #' @importFrom tibble tibble
-#' @importFrom tsibble tsibble
+#' @importFrom tsibble tsibble as_tibble
 #' @importFrom dplyr select select_at select_if
 #' @importFrom dplyr rename rename_at rename_if rename_all
 #' @importFrom dplyr filter filter_at filter_if filter_all
@@ -18,7 +18,7 @@
 #' @importFrom dplyr n first last row_number lag lead if_else case_when na_if
 #' @importFrom dplyr bind_rows bind_cols
 #' @importFrom magrittr %>%
-#' @importFrom rlang list2 !! !!! has_name
+#' @importFrom rlang list2 !! !!! has_name enquo enquos
 NULL
 
 globalVariables(".")

@@ -24,6 +24,19 @@ check_data_gaps <- function(acc_data) {
   invisible(TRUE)
 }
 
+check_data_integrity <- function(acc_data) {
+  if (!tsibble::is_regular(acc_data)) {
+    stop("Data is not regular.")
+  }
+  if (!tsibble::is_ordered(acc_data)) {
+    stop("Data is not ordered.")
+  }
+  if (!tsibble::is_duplicated(acc_data, index = timestamp)) {
+    stop("Data contains duplicated observations.")
+  }
+  invisible(TRUE)
+}
+
 # chk_d_epoch_
 check_agddata_epochlength <- function(agd_data, agd_settings) {
   if (get_epochlength(agd_data) != agd_settings$epochlength[[1]]) {
