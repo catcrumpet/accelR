@@ -31,7 +31,7 @@ check_data_integrity <- function(acc_data) {
   if (!tsibble::is_ordered(acc_data)) {
     stop("Data is not ordered.")
   }
-  if (!tsibble::is_duplicated(acc_data, index = timestamp)) {
+  if (tsibble::is_duplicated(acc_data, index = timestamp)) {
     stop("Data contains duplicated observations.")
   }
   invisible(TRUE)
