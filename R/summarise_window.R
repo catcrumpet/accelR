@@ -1,8 +1,6 @@
 #' @export
 summarise_window <- function(acc_data,
-                             acc_values = "axis1",
-                             pa = "pa",
-                             invalid = "nonwear",
+                             counts = axis1, pa = pa, valid = !nonwear,
                              anchor_time,
                              window) {
 
@@ -22,16 +20,17 @@ summarise_window <- function(acc_data,
            time_start = time_boundaries[[1]],
            time_stop = time_boundaries[[2]])
 
-  data <-
+  .data_subset <-
     acc_data %>%
-    rename(timestamp = tsibble::index(.)) %>%
     filter(timestamp >= time_boundaries[[1]], timestamp < time_boundaries[[2]])
 
   if (nrow(data) > 0) {
     window_summary <-
-      data %>%
-      make_data_(acc_values, pa, invalid) %>%
-      summarise_chunk_(get_epochlength(data))
+      standardize_data_(.data_subset,
+                        !!enquo(counts),
+                        !!enquo(pa),
+                        !!enquo(valid)) %>%
+      summarise_chunk_(get_epochlength(.data_subset))
 
     output <- bind_cols(output, window_summary)
   }
