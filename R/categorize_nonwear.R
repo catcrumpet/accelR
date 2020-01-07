@@ -33,16 +33,23 @@ nonwear_troiano <- function(counts,
 }
 
 #' @export
-nonwear_troiano_modified <- function(counts, epoch_len, endat_nnz_seq = TRUE) {
+nonwear_troiano_modified <- function(counts,
+                                     epoch_len,
+                                     activity_threshold = 0,
+                                     min_period_len = 60,
+                                     max_nonzero_count = Inf,
+                                     spike_tolerance = 0,
+                                     spike_stoplevel = 100,
+                                     endat_nnz_seq = TRUE) {
   epochs_min <- 60L / epoch_len
 
   troiano_args <-
     list(counts = counts,
-         activity_threshold = 0,
-         min_period_len = 60 * epochs_min,
-         max_nonzero_count = Inf,
-         spike_tolerance = 0,
-         spike_stoplevel = 0)
+         activity_threshold = activity_threshold / epochs_min,
+         min_period_len = min_period_len * epochs_min,
+         max_nonzero_count = max_nonzero_count / epochs_min,
+         spike_tolerance = spike_tolerance * epochs_min,
+         spike_stoplevel = spike_stoplevel / epochs_min)
 
   if (endat_nnz_seq) {
     purrr::lift(count_nonwear_troiano_seq_)(troiano_args)
