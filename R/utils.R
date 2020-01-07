@@ -51,10 +51,10 @@ format_v.POSIXct <- function(x) {
   format.POSIXct(x, format = "%Y-%m-%d %H:%M:%S", usetz = TRUE)
 }
 
-standardize_data_ <- function(acc_data, timestamp, counts, pa, valid) {
+standardize_data_ <- function(acc_data, counts, pa, valid) {
   acc_data %>%
     as_tibble() %>%
-    transmute(timestamp = !!enquo(timestamp),
+    transmute(timestamp,
               counts = !!enquo(counts),
               pa = !!enquo(pa),
               valid = !!enquo(valid))
