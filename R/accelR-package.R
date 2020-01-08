@@ -4,8 +4,8 @@
 #' @docType package
 #' @useDynLib accelR, .registration = TRUE
 #' @importFrom assertthat assert_that has_attr
-#' @importFrom tibble tibble
-#' @importFrom tsibble tsibble as_tibble
+#' @importFrom tibble tibble as_tibble
+#' @importFrom tsibble tsibble
 #' @importFrom dplyr select select_at select_if
 #' @importFrom dplyr rename rename_at rename_if rename_all
 #' @importFrom dplyr filter filter_at filter_if filter_all
