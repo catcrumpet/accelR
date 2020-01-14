@@ -65,7 +65,7 @@ read_csv_actigraph_raw_ <- function(file, tz = "UTC") {
     data <-
       suppressMessages(readr::read_csv(file, col_names = FALSE, skip = skip)) %>%
       rename_all(~stringr::str_replace(., "^X", "axis")) %>%
-      mutate(timestamp = preamble$startdatetime + lubridate::seconds(0:(n() - 1L) * preamble$epochlength)) %>%
+      mutate(timestamp = preamble$startdatetime + lubridate::seconds((0:(n() - 1L)) * preamble$epochlength)) %>%
       select(timestamp, num_range("axis", 1:3))
   }
 
