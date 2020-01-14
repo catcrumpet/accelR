@@ -6,7 +6,7 @@
 #' @param preamble Keep csv file preamble as an attribute?
 #' @return A \code{tsibble} (\code{tbl_ts}) of accelerometer data with at least two columns: timestamp and axis1.
 #' @export
-read_csv_actigraph <- function(file, tz = "UTC", preamble = FALSE) {
+read_csv_actigraph <- function(file, tz = "UTC", preamble = FALSE, correct = TRUE) {
   csv_data_raw <- read_csv_actigraph_raw_(file, tz)
 
   acc_data <-
@@ -15,25 +15,16 @@ read_csv_actigraph <- function(file, tz = "UTC", preamble = FALSE) {
   csv_preamble <- csv_data_raw$preamble
   csv_preamble_raw <- csv_data_raw$preamble_raw
 
+  if (correct) {
+    acc_data <- correct_data_(acc_data)
+  }
+
   check_data_integrity(acc_data)
+  check_data_gaps(acc_data)
 
   if (length(csv_preamble_raw) > 0) {
     check_agddata_epochlength(acc_data, csv_preamble)
     check_agddata_starttime(acc_data, csv_preamble)
-  }
-
-  if (is_gapful(acc_data)) {
-    epochlength_guess <-
-      difftime(acc_data$timestamp[2], acc_data$timestamp[1], units = "secs") %>%
-      {round(. / 5) * 5} %>%
-      as.integer()
-    acc_data <-
-      csv_data_raw$data %>%
-      mutate(timestamp =
-               lubridate::round_date(timestamp,
-                                     lubridate::seconds(epochlength_guess))) %>%
-      tsibble::as_tsibble(index = timestamp)
-    check_data_gaps(acc_data)
   }
 
   if (preamble) {
@@ -61,6 +52,8 @@ read_csv_actigraph_raw_ <- function(file, tz = "UTC") {
   }
 
   preamble <- preamble_parser_(preamble_raw, tz = tz)
+
+  stopifnot(nrow(preamble) %in% 0:1)
 
   header <- !stringr::str_detect(first_15[skip + 1], "^[,\\d]")
 
@@ -111,4 +104,21 @@ preamble_parser_ <- function(preamble_raw, tz = "UTC") {
 
   tibble(startdatetime = startdatetime,
          epochlength = epochlength)
+}
+
+correct_data_ <- function(acc_data) {
+  # if there are gaps, then maybe the timings are bad
+  if (is_gapful(acc_data)) {
+    epochlength_guess <-
+      difftime(acc_data$timestamp[2], acc_data$timestamp[1], units = "secs") %>%
+      {round(. / 5) * 5} %>%
+      as.integer()
+    acc_data <-
+      csv_data_raw$data %>%
+      mutate(timestamp =
+               lubridate::round_date(timestamp,
+                                     lubridate::seconds(epochlength_guess))) %>%
+      tsibble::as_tsibble(index = timestamp)
+  }
+  acc_data
 }
