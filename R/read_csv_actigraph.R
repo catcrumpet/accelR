@@ -17,7 +17,7 @@ read_csv_actigraph <- function(file, tz = "UTC", preamble = FALSE) {
 
   check_data_integrity(acc_data)
 
-  if (length(preamble_raw) > 0) {
+  if (length(csv_preamble_raw) > 0) {
     check_agddata_epochlength(acc_data, csv_preamble)
     check_agddata_starttime(acc_data, csv_preamble)
   }
