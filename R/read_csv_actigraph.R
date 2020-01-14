@@ -111,7 +111,7 @@ correct_acc_data_ <- function(acc_data) {
       {round(. / 5) * 5} %>%
       as.integer()
     acc_data <-
-      csv_data_raw$data %>%
+      acc_data %>%
       mutate(timestamp =
                lubridate::round_date(timestamp,
                                      lubridate::seconds(epochlength_guess))) %>%
