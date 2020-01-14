@@ -22,7 +22,20 @@ read_csv_actigraph <- function(file, tz = "UTC", preamble = FALSE) {
     check_agddata_starttime(acc_data, preamble)
   }
 
-  check_data_gaps(acc_data)
+  if (is_gapful(acc_data)) {
+    epochlength_guess <-
+      difftime(acc_data$timestamp[2], acc_data$timestamp[1], units = "seconds") %>%
+      {round(. / 5) * 5} %>%
+      as.integer()
+    acc_data <-
+      csv_data_raw$data %>%
+      mutate(timestamp =
+               lubridate::round_date(timestamp,
+                                     lubridate::seconds(epochlength_guess))) %>%
+      tsibble::as_tsibble(index = timestamp)
+    check_data_gaps(acc_data)
+  }
+
 
   if (preamble) {
     attr(acc_data, "preamble") <- preamble

@@ -18,10 +18,14 @@ check_agddata_stoptime <- function(agd_data, agd_settings) {
 
 # chk_d_gaps_
 check_data_gaps <- function(acc_data) {
-  if (any(tsibble::has_gaps(acc_data)$.gaps)) {
+  if (is_gapful(acc_data)) {
     stop("Data contains gaps in observations.")
   }
   invisible(TRUE)
+}
+
+is_gapful <- function(acc_data) {
+  any(tsibble::has_gaps(acc_data)$.gaps)
 }
 
 check_data_integrity <- function(acc_data) {
