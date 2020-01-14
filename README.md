@@ -8,6 +8,8 @@ The goal of accelR is to provide a simple and easy interface to processing accel
 
 Everything is still being developed so anything can change at anytime.
 
+In fact major things have changed.
+
 ## Installation
 
 Install my terrible code using the `devtools` package like so: 
@@ -15,15 +17,15 @@ Install my terrible code using the `devtools` package like so:
 devtools::install_github("catcrumpet/accelR")
 ```
 
-## A short and painful tutorial
+# A short and painful tutorial
 
-### Install and load the package.
+## Install and load the package.
 ```r
 devtools::install_github("catcrumpet/accelR")
 library(accelR)
 ```
 
-### Read in accelerometer data from an ActiGraph (\*.agd) file . 
+## Read in accelerometer data from an ActiGraph (\*.agd) file . 
 In this case, the data was collected in Los Angeles, so the timezone is set appropriately.
 ```r
 good_data <- read_agd("catcrumpet_data.agd", tz = "America/Los_Angeles")
@@ -59,11 +61,15 @@ Data need to pass several checks:
 
 Currently there are no tools to fix these issues, but these are in development.
 
+## Accelerometer-based calculations
+All accelerometer-based calculations or methods \[now\] do not assume which column of data contains the count data to be processed. Most Actigraph accelerometers capture count data in three axes: `axis1`, `axis2`, and `axis3`. In order for most, if not all, of the following calculations to work, the proper axis (or magnitude column) must be provided.
+
 ### Add a column for nonwear.
-We will use a modified Troiano approach that is more strict with no spikes. This can be done by setting the argument `spike_tolerance = 0`.
+The default approach for nonwear detection is the Troiano approach. We will use a modified Troiano approach that is more strict with no spikes. This can be done by setting the argument `spike_tolerance = 0`.
 ```r
-better_data <- add_nonwear_troiano(good_data, spike_tolerance = 0)
+better_data <- add_nonwear(good_data, axis1, spike_tolerance = 0)
 ```
+Note that the first argument is the dataset that is being worked on, `good_data`. The second argument, `axis1`, is the column to calculate nonwear for. Also note that `axis1` is unquoted (i.e., it is `axis1` and not `"axis1"`), this is by design to make it more convenient to use. Most functions in this package should be able to accept unquoted arguments as the column to work on. If this bothers you, functions should also be able to accept quoted arguments as well.
 
 `better_data` now has a new column for nonwear (`nonwear`):
 ```
@@ -82,14 +88,16 @@ better_data <- add_nonwear_troiano(good_data, spike_tolerance = 0)
 10 2017-11-30 00:01:30   505   227   245 FALSE  
 # … with 1,071 more rows
 ```
+The name for the new nonwear column can be customized by setting the `nonwear` argument.
 
 ### Add a column for physical activity category.
 The default is to use Troiano age-based cutpoints. In this case, the person is 12 years old and the appropriate age-based cutpoints are chosen automatically.
 ```r
-best_data <- add_pa_category(better_data, age = 12)
+best_data <- add_pa(better_data, axis1, age = 12)
 ```
+Again, note that the second argument is the unquoted name of the column we want to categorize physical activity.
 
-Finally, `best_data` should look something like this:
+Now, we have a new column of physical activity category data with the default name of "`pa`".
 ```
 # A tsibble: 1,081 x 6 [10s] <America/Los_Angeles>
    timestamp           axis1 axis2 axis3 nonwear pa   
@@ -106,96 +114,3 @@ Finally, `best_data` should look something like this:
 10 2017-11-30 00:01:30   505   227   245 FALSE   mod  
 # … with 1,071 more rows
 ```
-
-### Summarize the data.
-This is still a work in progress. Currently, two functions are provided:
-- `summarise_day`
-- `summarise_window`
-
-`summarise_day` will summarize (note the 's' in the function) the data by day automatically.
-
-```r
-day_summary <- summarise_day(best_data)
-```
-
-The results provide a lot of different values in a table, so `dplyr::glimpse` can be used to get quick idea of what's going on.
-```r
-dplyr::glimpse(day_summary)
-```
-
-```
-Observations: 1
-Variables: 20
-$ date          <date> 2017-11-30
-$ timestamp_min <dttm> 2017-11-30
-$ timestamp_max <dttm> 2017-11-30 03:00:00
-$ epoch_length  <int> 10
-$ total_e       <int> 1081
-$ total_m       <dbl> 180.1667
-$ total_c       <int> 77687
-$ valid_e       <int> 449
-$ valid_m       <dbl> 74.83333
-$ valid_c       <int> 0
-$ sed_m         <dbl> 74.83333
-$ lig_m         <dbl> 0
-$ mod_m         <dbl> 0
-$ vig_m         <dbl> 0
-$ ext_m         <dbl> 0
-$ sed_c         <dbl> 0
-$ lig_c         <dbl> 0
-$ mod_c         <dbl> 0
-$ vig_c         <dbl> 0
-$ ext_c         <dbl> 0
-```
-
-`summarise_window` is a much more specialized function which takes in 2 necessary arguments in addition to the accelerometer data: `anchor_time` and `window`.
-
-`anchor_time` is the base time around which `window` (in minutes) operates around. `anchor_time` must be a POSIXct object, which is typically used to represent datetime objects. `lubridate::ymd_hms` can easily parse datetime strings into POSIXct objects.
-
-`window` denotes the window around `anchor_time` in whole minutes (no fractions). `window` must be a numeric vector of length 1 or 2 and can contain negative numbers. A window of a single negative number will cover the period of those minutes prior to the `anchor_time` up to the `anchor_time`. A window of a single positive number will cover the period from the `anchor_time` to the specified minutes. A window of two numbers will cover the period from the left side to the right side.
-
-For example, the following uses an `anchor_time` of 2017-11-30 01:30:00 (1:30 AM on November 30, 2017) in Los Angeles time and a window of 5 minutes before and 5 minutes after this time:
-```r
-window_summary <- 
-   summarise_window(best_data, 
-                    anchor_time = lubridate::ymd_hms("2017-11-30 01:30:00", 
-                                                     tz = "America/Los_Angeles"), 
-                    window = c(-5, 5))
-
-dplyr::glimpse(window_summary)
-```
-
-```
-Observations: 1
-Variables: 25
-$ anchor_time   <dttm> 2017-11-30 01:30:00
-$ window_start  <dbl> -5
-$ window_stop   <dbl> 5
-$ window_length <int> 10
-$ time_start    <dttm> 2017-11-30 01:25:00
-$ time_stop     <dttm> 2017-11-30 01:35:00
-$ timestamp_min <dttm> 2017-11-30 01:25:00
-$ timestamp_max <dttm> 2017-11-30 01:34:50
-$ epoch_length  <int> 10
-$ total_e       <int> 60
-$ total_m       <dbl> 10
-$ total_c       <int> 694
-$ valid_e       <int> 18
-$ valid_m       <dbl> 3
-$ valid_c       <int> 0
-$ sed_m         <dbl> 3
-$ lig_m         <dbl> 0
-$ mod_m         <dbl> 0
-$ vig_m         <dbl> 0
-$ ext_m         <dbl> 0
-$ sed_c         <dbl> 0
-$ lig_c         <dbl> 0
-$ mod_c         <dbl> 0
-$ vig_c         <dbl> 0
-$ ext_c         <dbl> 0
-```
-
-One final note on this, if the window period falls outside the data entirely, then the function will bypass calculating the summaries for the PA categories.
-
-## Final notes
-- I'm still learning how to document this, so references will be added in. I borrowed heavily from the work of other people and their attributions are due.
