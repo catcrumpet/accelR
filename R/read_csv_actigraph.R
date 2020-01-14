@@ -8,15 +8,12 @@
 #' @export
 read_csv_actigraph <- function(file, tz = "UTC", preamble = FALSE, correct = TRUE) {
   csv_data_raw <- read_csv_actigraph_raw_(file, tz)
-
-  acc_data <-
-    csv_data_raw$data %>%
-    tsibble::as_tsibble(index = timestamp)
+  acc_data <- tsibble::as_tsibble(csv_data_raw$data, index = timestamp)
   csv_preamble <- csv_data_raw$preamble
   csv_preamble_raw <- csv_data_raw$preamble_raw
 
   if (correct) {
-    acc_data <- correct_data_(acc_data)
+    acc_data <- correct_acc_data_(acc_data)
   }
 
   check_data_integrity(acc_data)
@@ -106,7 +103,7 @@ preamble_parser_ <- function(preamble_raw, tz = "UTC") {
          epochlength = epochlength)
 }
 
-correct_data_ <- function(acc_data) {
+correct_acc_data_ <- function(acc_data) {
   # if there are gaps, then maybe the timings are bad
   if (is_gapful(acc_data)) {
     epochlength_guess <-
