@@ -24,7 +24,7 @@ read_csv_actigraph <- function(file, tz = "UTC", preamble = FALSE) {
 
   if (is_gapful(acc_data)) {
     epochlength_guess <-
-      difftime(acc_data$timestamp[2], acc_data$timestamp[1], units = "seconds") %>%
+      difftime(acc_data$timestamp[2], acc_data$timestamp[1], units = "secs") %>%
       {round(. / 5) * 5} %>%
       as.integer()
     acc_data <-
