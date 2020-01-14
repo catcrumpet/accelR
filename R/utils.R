@@ -23,7 +23,8 @@ list_settings <- function(acc_data) {
 #' @return The epoch length in seconds as an integer value.
 #' @export
 get_epochlength <- function(acc_data) {
-  as.integer(tsibble::interval(acc_data)$second)
+  as.integer(tsibble::interval(acc_data)$second +
+               tsibble::interval(acc_data)$minute * 60L)
 }
 
 #' Get timezone of accelerometer data
