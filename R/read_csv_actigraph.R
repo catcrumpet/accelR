@@ -13,7 +13,7 @@ read_csv_actigraph <- function(file, tz = "UTC", preamble = FALSE, correct = TRU
   csv_preamble_raw <- csv_data_raw$preamble_raw
 
   if (correct) {
-    acc_data <- correct_acc_data_(acc_data)
+    acc_data <- correct_acc_data_gaps_(acc_data, csv_preamble)
   }
 
   check_data_integrity(acc_data)
@@ -103,7 +103,7 @@ preamble_parser_ <- function(preamble_raw, tz = "UTC") {
          epochlength = epochlength)
 }
 
-correct_acc_data_ <- function(acc_data) {
+correct_acc_data_gaps_ <- function(acc_data, preamble) {
   # if there are gaps, then maybe the timings are bad
   if (is_gapful(acc_data)) {
     epochlength_guess <-
