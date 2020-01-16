@@ -18,7 +18,7 @@ read_csv_actigraph <- function(file, tz = "UTC", preamble = FALSE, correct = TRU
     if (nrow(csv_preamble) == 1) {
       acc_data <-
         correct_acc_starttime_(acc_data,
-                               get_epochlength(acc_data),
+                               csv_preamble$epochlength,
                                csv_preamble$startdatetime)
     }
   }
@@ -67,15 +67,15 @@ read_csv_actigraph_raw_ <- function(file, tz = "UTC") {
       rename_all(tolower) %>%
       rename_at(vars(starts_with("activity")),
                 ~stringr::str_c("axis", seq_len(length(.)))) %>%
-      mutate(timestamp = lubridate::mdy_hms(str_c(date, time, sep = " "), tz = tz)) %>%
+      mutate(timestamp = lubridate::mdy_hms(stringr::str_c(date, time, sep = " "), tz = tz)) %>%
       mutate_at(vars(starts_with("axis")), as.integer) %>%
-      select(timestamp, num_range("axis", 1:3))
+      select(timestamp, dplyr::num_range("axis", 1:3))
   } else {
     data <-
       suppressMessages(readr::read_csv(file, col_names = FALSE, skip = skip)) %>%
       rename_all(~stringr::str_replace(., "^X", "axis")) %>%
       mutate(timestamp = preamble$startdatetime + lubridate::seconds((0:(n() - 1L)) * preamble$epochlength)) %>%
-      select(timestamp, num_range("axis", 1:3))
+      select(timestamp, dplyr::num_range("axis", 1:3))
   }
 
   list(data = data, preamble = preamble, preamble_raw = preamble_raw)
@@ -140,15 +140,15 @@ correct_acc_starttime_ <- function(acc_data, epochlength, starttime) {
   if (is_starty_bad(acc_data, starttime)) {
     message("Data possesses mismatched start time, applying correction.")
     timestamp_error <-
-      difftime(starttime,
-               acc_data$timestamp[1],
+      difftime(dplyr::first(acc_data$timestamp),
+               starttime,
                units = "secs")
 
     if (timestamp_error == epochlength & timestamp_error <= 60) {
       acc_data <-
         acc_data %>%
         mutate(timestamp =
-                 starttime + lubridate::seconds((1:n()) - 1L) * epochlength) %>%
+                 starttime + lubridate::seconds((0:(n() - 1L)) * epochlength)) %>%
         tsibble::as_tsibble(index = timestamp)
     } else {
       stop("Cannot correct start time mismatch.")
