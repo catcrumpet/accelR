@@ -13,13 +13,21 @@ read_csv_actigraph <- function(file, tz = "UTC", preamble = FALSE, correct = TRU
   csv_preamble_raw <- csv_data_raw$preamble_raw
 
   if (correct) {
-    acc_data <- correct_acc_data_gaps_(acc_data, csv_preamble)
+    acc_data <-
+      correct_acc_data_gaps_(acc_data) %>%
+      {
+        if (nrow(csv_preamble) == 1) {
+          correct_acc_starttime_(.,
+                                 get_epochlength(.),
+                                 csv_preamble$startdatetime)
+        }
+      }
   }
 
   check_data_integrity(acc_data)
   check_data_gaps(acc_data)
 
-  if (length(csv_preamble_raw) > 0) {
+  if (nrow(csv_preamble) > 0) {
     check_agddata_epochlength(acc_data, csv_preamble)
     check_agddata_starttime(acc_data, csv_preamble)
   }
@@ -99,23 +107,53 @@ preamble_parser_ <- function(preamble_raw, tz = "UTC") {
     hms::as_hms() %>%
     as.integer(units = "seconds")
 
-  tibble(startdatetime = startdatetime,
-         epochlength = epochlength)
+  preamble <-
+    tibble(startdatetime = startdatetime,
+           epochlength = epochlength)
+
+  stopifnot(nrow(preamble) == 1)
+
+  preamble
 }
 
-correct_acc_data_gaps_ <- function(acc_data, preamble) {
+correct_acc_data_gaps_ <- function(acc_data) {
   # if there are gaps, then maybe the timings are bad
-  if (is_gapful(acc_data)) {
-    epochlength_guess <-
-      difftime(acc_data$timestamp[2], acc_data$timestamp[1], units = "secs") %>%
+  if (is_gappy_bad(acc_data)) {
+    message("Data contains gaps, applying correction.")
+    epochlen_guess <-
+      difftime(acc_data$timestamp[2],
+               acc_data$timestamp[1],
+               units = "secs") %>%
       {round(. / 5) * 5} %>%
       as.integer()
     acc_data <-
       acc_data %>%
       mutate(timestamp =
                lubridate::round_date(timestamp,
-                                     lubridate::seconds(epochlength_guess))) %>%
+                                     lubridate::seconds(epochlen_guess))) %>%
       tsibble::as_tsibble(index = timestamp)
+  }
+  acc_data
+}
+
+correct_acc_starttime_ <- function(acc_data, epochlength, starttime) {
+  # if there are gaps, then maybe the timings are bad
+  if (is_starty_bad(acc_data, starttime)) {
+    message("Data possesses mismatched start time, applying correction.")
+    timestamp_error <-
+      difftime(starttime,
+               acc_data$timestamp[1],
+               units = "secs")
+
+    if (timestamp_error == epochlength & timestamp_error <= 60) {
+      acc_data <-
+        acc_data %>%
+        mutate(timestamp =
+                 starttime + lubridate::seconds((1:n()) - 1L) * epochlength) %>%
+        tsibble::as_tsibble(index = timestamp)
+    } else {
+      stop("Cannot correct start time mismatch.")
+    }
   }
   acc_data
 }
