@@ -13,15 +13,14 @@ read_csv_actigraph <- function(file, tz = "UTC", preamble = FALSE, correct = TRU
   csv_preamble_raw <- csv_data_raw$preamble_raw
 
   if (correct) {
-    acc_data <-
-      correct_acc_data_gaps_(acc_data) %>%
-      {
-        if (nrow(csv_preamble) == 1) {
-          correct_acc_starttime_(.,
-                                 get_epochlength(.),
-                                 csv_preamble$startdatetime)
-        }
-      }
+    acc_data <- correct_acc_data_gaps_(acc_data)
+
+    if (nrow(csv_preamble) == 1) {
+      acc_data <-
+        correct_acc_starttime_(acc_data,
+                               get_epochlength(acc_data),
+                               csv_preamble$startdatetime)
+    }
   }
 
   check_data_integrity(acc_data)
