@@ -1,31 +1,40 @@
+is_starty_bad <- function(acc_data, starttime) {
+  dplyr::first(acc_data$timestamp) != starttime
+}
 
 # chk_d_start_
 check_agddata_starttime <- function(agd_data, agd_settings) {
-  if (first(agd_data$timestamp) != agd_settings$startdatetime[[1]]) {
+  if (is_starty_bad(agd_data,
+                    agd_settings$startdatetime[[1]])) {
     stop("Data start time does not match setting start time.")
   }
   invisible(TRUE)
 }
 
+is_stoppy_bad <- function(acc_data, epochlength, stoptime) {
+  (dplyr::last(acc_data$timestamp) + lubridate::seconds(epochlength)) != stoptime
+}
+
 # chk_d_stop_
 check_agddata_stoptime <- function(agd_data, agd_settings) {
-  if ((last(agd_data$timestamp) + lubridate::seconds(get_epochlength(agd_data))) !=
-      agd_settings$stopdatetime[[1]]) {
+  if (is_stoppy_bad(agd_data,
+                    get_epochlength(agd_data),
+                    agd_settings$stopdatetime[[1]])) {
     stop("Data stop time does not match setting stop time.")
   }
   invisible(TRUE)
 }
 
+is_gappy_bad <- function(acc_data) {
+  any(tsibble::has_gaps(acc_data)$.gaps)
+}
+
 # chk_d_gaps_
 check_data_gaps <- function(acc_data) {
-  if (is_gapful(acc_data)) {
+  if (is_gappy_bad(acc_data)) {
     stop("Data contains gaps in observations.")
   }
   invisible(TRUE)
-}
-
-is_gapful <- function(acc_data) {
-  any(tsibble::has_gaps(acc_data)$.gaps)
 }
 
 check_data_integrity <- function(acc_data) {
