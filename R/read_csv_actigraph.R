@@ -6,22 +6,23 @@
 #' @param preamble Keep csv file preamble as an attribute?
 #' @return A \code{tsibble} (\code{tbl_ts}) of accelerometer data with at least two columns: timestamp and axis1.
 #' @export
-read_csv_actigraph <- function(file, tz = "UTC", preamble = FALSE, correct = TRUE) {
+read_csv_actigraph <- function(file, tz = "UTC", preamble = FALSE) {
+  # , correct = TRUE
   csv_data_raw <- read_csv_actigraph_raw_(file, tz)
   acc_data <- tsibble::as_tsibble(csv_data_raw$data, index = timestamp)
   csv_preamble <- csv_data_raw$preamble
   csv_preamble_raw <- csv_data_raw$preamble_raw
 
-  if (correct) {
-    acc_data <- correct_acc_data_gaps_(acc_data)
-
-    if (nrow(csv_preamble) == 1) {
-      acc_data <-
-        correct_acc_starttime_(acc_data,
-                               csv_preamble$epochlength,
-                               csv_preamble$startdatetime)
-    }
-  }
+  # if (correct) {
+  #   acc_data <- correct_acc_data_gaps_(acc_data)
+  #
+  #   if (nrow(csv_preamble) == 1) {
+  #     acc_data <-
+  #       correct_acc_starttime_(acc_data,
+  #                              csv_preamble$epochlength,
+  #                              csv_preamble$startdatetime)
+  #   }
+  # }
 
   check_data_integrity(acc_data)
   check_data_gaps(acc_data)
@@ -62,23 +63,43 @@ read_csv_actigraph_raw_ <- function(file, tz = "UTC") {
   header <- !stringr::str_detect(first_15[skip + 1], "^[,\\d]")
 
   if (header) {
-    data <-
+    data_raw <-
       suppressMessages(readr::read_csv(file, skip = skip)) %>%
       rename_all(tolower) %>%
       rename_at(vars(starts_with("activity")),
                 ~stringr::str_c("axis", seq_len(length(.)))) %>%
-      mutate(timestamp = lubridate::mdy_hms(stringr::str_c(date, time, sep = " "), tz = tz)) %>%
+      mutate(timestamp = suppressWarnings(lubridate::mdy_hms(stringr::str_c(date, time, sep = " "), tz = tz))) %>%
       mutate_at(vars(starts_with("axis")), as.integer) %>%
       select(timestamp, dplyr::num_range("axis", 1:3))
+
+    if (nrow(preamble) == 1) {
+      starttime <- preamble$startdatetime
+      epochlength <- preamble$epochlength
+    } else {
+      starttime <- dplyr::first(data_raw$timestamp)
+      epochlength <-
+        difftime(data_raw$timestamp[2],
+                 data_raw$timestamp[1],
+                 units = "secs") %>%
+        {round(. / 5) * 5} %>%
+        as.integer()
+    }
+
+    data_raw <-
+      data_raw %>%
+      mutate(timestamp =
+               {lubridate::with_tz(starttime, tz = "UTC") +
+               lubridate::seconds((0:(n() - 1L)) * epochlength)} %>%
+               lubridate::with_tz(tz = tz))
   } else {
-    data <-
+    data_raw <-
       suppressMessages(readr::read_csv(file, col_names = FALSE, skip = skip)) %>%
       rename_all(~stringr::str_replace(., "^X", "axis")) %>%
       mutate(timestamp = preamble$startdatetime + lubridate::seconds((0:(n() - 1L)) * preamble$epochlength)) %>%
       select(timestamp, dplyr::num_range("axis", 1:3))
   }
 
-  list(data = data, preamble = preamble, preamble_raw = preamble_raw)
+  list(data = data_raw, preamble = preamble, preamble_raw = preamble_raw)
 }
 
 preamble_parser_ <- function(preamble_raw, tz = "UTC") {

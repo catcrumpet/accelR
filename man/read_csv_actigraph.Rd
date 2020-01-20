@@ -4,7 +4,7 @@
 \alias{read_csv_actigraph}
 \title{Read accelerometer data from an *.csv file}
 \usage{
-read_csv_actigraph(file, tz = "UTC", preamble = FALSE, correct = TRUE)
+read_csv_actigraph(file, tz = "UTC", preamble = FALSE)
 }
 \arguments{
 \item{file}{Full path to a csv file to read.}
