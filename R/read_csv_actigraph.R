@@ -89,13 +89,16 @@ read_csv_actigraph_raw_ <- function(file, tz = "UTC") {
       data_raw %>%
       mutate(timestamp =
                {lubridate::with_tz(starttime, tz = "UTC") +
-               lubridate::seconds((0:(n() - 1L)) * epochlength)} %>%
+                   lubridate::seconds((0:(n() - 1L)) * epochlength)} %>%
                lubridate::with_tz(tz = tz))
   } else {
     data_raw <-
       suppressMessages(readr::read_csv(file, col_names = FALSE, skip = skip)) %>%
       rename_all(~stringr::str_replace(., "^X", "axis")) %>%
-      mutate(timestamp = preamble$startdatetime + lubridate::seconds((0:(n() - 1L)) * preamble$epochlength)) %>%
+      mutate(timestamp =
+               {lubridate::with_tz(preamble$startdatetime, tz = "UTC") +
+                   lubridate::seconds((0:(n() - 1L)) * preamble$epochlength)} %>%
+               lubridate::with_tz(tz = tz)) %>%
       select(timestamp, dplyr::num_range("axis", 1:3))
   }
 
