@@ -106,7 +106,7 @@ summarise_bouts_ <- function(bouts_data, lens, pctls, prefilter = TRUE) {
   .btsb <- filter(bouts_data, !!.prefilt)
 
   str_pad_0_adj <- function(x) {
-    str_pad(x, max(str_length(x)), "left", "0")
+    stringr::str_pad(x, max(stringr::str_length(x)), "left", "0")
   }
 
   total_minutes <-
@@ -114,10 +114,8 @@ summarise_bouts_ <- function(bouts_data, lens, pctls, prefilter = TRUE) {
     mutate(total_minutes =
              map_dbl(lengths,
                      ~sum(filter(.btsb, .mins > .x)$.mins))) %>%
-    mutate(lengths =
-             str_c("mins_sum_gt",
-                   str_pad(lengths, max(str_length(lengths)), "left", "0"))) %>%
-    spread(lengths, total_minutes) %>%
+    mutate(lengths = stringr::str_c("mins_sum_gt", str_pad_0_adj(lengths))) %>%
+    tidyr::spread(lengths, total_minutes) %>%
     mutate(mins_avg = mean(.btsb$.mins))
 
   count_ratio <-
@@ -126,8 +124,8 @@ summarise_bouts_ <- function(bouts_data, lens, pctls, prefilter = TRUE) {
              map_dbl(lengths,
                      ~nrow(filter(.btsb, .mins > .x))) %>%
              {. / nrow(.btsb)}) %>%
-    mutate(lengths = str_c("cnts_rat_gt", str_pad_0_adj(lengths))) %>%
-    spread(lengths, ratio) %>%
+    mutate(lengths = stringr::str_c("cnts_rat_gt", str_pad_0_adj(lengths))) %>%
+    tidyr::spread(lengths, ratio) %>%
     mutate(cnts_tot = nrow(.btsb)) %>%
     select(cnts_tot, everything())
 
@@ -135,8 +133,8 @@ summarise_bouts_ <- function(bouts_data, lens, pctls, prefilter = TRUE) {
     quantile(.btsb$.mins, probs = pctls, names = FALSE) %>%
     enframe(name = "percentile", value = "minutes") %>%
     mutate(percentile = as.integer(pctls * 100)) %>%
-    mutate(percentile = str_c("mins_len_p", str_pad_0_adj(percentile))) %>%
-    spread(percentile, minutes)
+    mutate(percentile = stringr::str_c("mins_len_p", str_pad_0_adj(percentile))) %>%
+    tidyr::spread(percentile, minutes)
 
   bind_cols(total_minutes, count_ratio, duration_percentiles) %>%
     mutate(alpha = calculate_alpha_(.btsb$.mins)) %>%

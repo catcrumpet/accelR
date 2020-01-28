@@ -24,7 +24,7 @@ summarise_window <- function(acc_data,
     acc_data %>%
     filter(timestamp >= time_boundaries[[1]], timestamp < time_boundaries[[2]])
 
-  if (nrow(data) > 0) {
+  if (nrow(.data_subset) > 0) {
     window_summary <-
       standardize_data_(.data_subset,
                         !!enquo(counts),
