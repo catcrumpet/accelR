@@ -15,7 +15,7 @@ summarise_chunk_ <- function(std_data, epoch_len) {
       valid_e = sum(valid),
       valid_m = sum(valid) / epochs_min,
       valid_c = sum(counts[valid])) %>%
-    mutate(timestamp_stop = timestamp_max + lubridate::seconds(epoch_len))
+    mutate(timestamp_stop = timestamp_stop + lubridate::seconds(epoch_len))
 
   stopifnot(with(output_total, valid_m <= total_m))
   stopifnot(with(output_total, valid_c <= total_c))

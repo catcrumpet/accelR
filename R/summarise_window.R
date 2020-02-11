@@ -19,19 +19,19 @@ summarise_window <- function(acc_data,
 
   parameter_table <-
     expand_grid(anchor_time = anchor_times,
-                map_dfr(windows, convert_window_)) %>%
+                map_dfr(windows, convert_window_m_)) %>%
     mutate(window_start = anchor_time + lubridate::minutes(window_left),
            window_stop = anchor_time + lubridate::minutes(window_right))
 
   parameter_table %>%
-    bind_cols(map2(.$window_start,
-                   .$window_stop,
-                   function(time_start, time_stop) {
-                     standardized_data %>%
-                       filter(timestamp >= time_start,
-                              timestamp < time_stop) %>%
-                       summarise_chunk_(epochlength)
-                   }))
+    bind_cols(map2_dfr(.$window_start,
+                       .$window_stop,
+                       function(window_start, window_stop) {
+                         standardized_data %>%
+                           filter(timestamp >= window_start,
+                                  timestamp < window_stop) %>%
+                           summarise_chunk_(epochlength)
+                       }))
 }
 
 convert_window_ <- function(window) {
@@ -57,3 +57,5 @@ convert_window_ <- function(window) {
          window_right = win_vec[2],
          window_length = win_len)
 }
+
+convert_window_m_ <- memoise::memoise(convert_window_)
