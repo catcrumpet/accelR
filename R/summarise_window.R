@@ -1,8 +1,10 @@
 #' @export
 summarise_window <- function(acc_data,
-                             counts = axis1, pa = pa, valid = valid,
                              anchor_times,
-                             windows) {
+                             windows,
+                             counts = axis1,
+                             pa = pa,
+                             valid = valid) {
 
   stopifnot(lubridate::is.POSIXct(anchor_times))
   # msg = "Anchor times must be a vector of POSIXct objects."
@@ -22,8 +24,8 @@ summarise_window <- function(acc_data,
            window_stop = anchor_time + lubridate::minutes(window_right))
 
   parameter_table %>%
-    bind_cols(map2(.$time_start,
-                   .$time_stop,
+    bind_cols(map2(.$window_start,
+                   .$window_stop,
                    function(time_start, time_stop) {
                      standardized_data %>%
                        filter(timestamp >= time_start,
