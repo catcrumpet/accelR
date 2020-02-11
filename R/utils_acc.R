@@ -47,20 +47,3 @@ change_timezone <- function(acc_data, tz = Sys.timezone()) {
   attr(acc_data$timestamp, "tzone") <- tz
   acc_data
 }
-
-format_v.POSIXct <- function(x) {
-  format.POSIXct(x, format = "%Y-%m-%d %H:%M:%S", usetz = TRUE)
-}
-
-standardize_data_ <- function(acc_data, counts, pa, valid) {
-  acc_data %>%
-    as_tibble() %>%
-    transmute(timestamp,
-              counts = !!enquo(counts),
-              pa = !!enquo(pa),
-              valid = !!enquo(valid))
-}
-
-calculate_alpha_ <- function(x) {
-  1 + (1 / mean(log(x / min(x)), na.rm = TRUE))
-}

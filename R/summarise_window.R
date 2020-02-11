@@ -9,13 +9,14 @@ summarise_window <- function(acc_data,
   stopifnot(lubridate::is.POSIXct(anchor_times))
   # msg = "Anchor times must be a vector of POSIXct objects."
 
-  standardized_data <-
+  epochlength <- get_epochlength(acc_data)
+
+  standardized_datatable <-
     standardize_data_(acc_data,
                       !!enquo(counts),
                       !!enquo(pa),
-                      !!enquo(valid))
-
-  epochlength <- get_epochlength(acc_data)
+                      !!enquo(valid),
+                      data_table = TRUE)
 
   parameter_table <-
     expand_grid(anchor_time = anchor_times,
@@ -27,9 +28,8 @@ summarise_window <- function(acc_data,
     bind_cols(map2_dfr(.$window_start,
                        .$window_stop,
                        function(window_start, window_stop) {
-                         standardized_data %>%
-                           filter(timestamp >= window_start,
-                                  timestamp < window_stop) %>%
+                         data.table:::subset.data.table(standardized_datatable,
+                                                        subset = timestamp >= window_start & timestamp < window_stop) %>%
                            summarise_chunk_(epochlength)
                        }))
 }
