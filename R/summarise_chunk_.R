@@ -1,11 +1,11 @@
-summarise_chunk_ <- function(data, epoch_len) {
+summarise_chunk_ <- function(std_data, epoch_len) {
   epochs_min <- 60L / epoch_len
 
   output_total <-
-    data %>%
+    std_data %>%
     summarise(
-      timestamp_min = min(timestamp),
-      timestamp_max = max(timestamp),
+      timestamp_start = if (n() == 0) lubridate::as_datetime(NA) else min(timestamp),
+      timestamp_stop = if (n() == 0) lubridate::as_datetime(NA) else max(timestamp),
 
       epoch_length = !!epoch_len,
       total_e = n(),
@@ -15,14 +15,14 @@ summarise_chunk_ <- function(data, epoch_len) {
       valid_e = sum(valid),
       valid_m = sum(valid) / epochs_min,
       valid_c = sum(counts[valid])) %>%
-    mutate(timestamp_max = timestamp_max + lubridate::seconds(epoch_len))
+    mutate(timestamp_stop = timestamp_max + lubridate::seconds(epoch_len))
 
   stopifnot(with(output_total, valid_m <= total_m))
   stopifnot(with(output_total, valid_c <= total_c))
 
   if (output_total$valid_m > 0) {
     output_pa_min <-
-      data %>%
+      std_data %>%
       count(pa, valid, .drop = FALSE) %>%
       ungroup() %>%
       mutate(n = n / epochs_min) %>%
@@ -33,7 +33,7 @@ summarise_chunk_ <- function(data, epoch_len) {
       select(-valid)
 
     output_pa_count <-
-      data %>%
+      std_data %>%
       group_by(valid, pa, .drop = FALSE) %>%
       summarise(counts = sum(counts)) %>%
       ungroup() %>%

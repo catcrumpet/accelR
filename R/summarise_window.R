@@ -1,41 +1,35 @@
 #' @export
 summarise_window <- function(acc_data,
-                             counts = axis1, pa = pa, valid = !nonwear,
-                             anchor_time,
-                             window) {
+                             counts = axis1, pa = pa, valid = valid,
+                             anchor_times,
+                             windows) {
 
-  stopifnot(lubridate::is.POSIXct(anchor_time) & length(anchor_time) == 1)
-  # msg = "Anchor time must be a POSIXct object of length 1."
+  stopifnot(lubridate::is.POSIXct(anchor_times))
+  # msg = "Anchor times must be a vector of POSIXct objects."
 
-  win_list <- convert_window_(window)
+  standardized_data <-
+    standardize_data_(acc_data,
+                      !!enquo(counts),
+                      !!enquo(pa),
+                      !!enquo(valid))
 
-  # create look_vec: length(ISOdatetime()) == 2
-  time_boundaries <- anchor_time + lubridate::minutes(win_list$win_vec)
+  epochlength <- get_epochlength(acc_data)
 
-  output <-
-    tibble(anchor_time = anchor_time,
-           window_start = win_list$win_vec[[1]],
-           window_stop = win_list$win_vec[[2]],
-           window_length = win_list$win_len[[1]],
-           time_start = time_boundaries[[1]],
-           time_stop = time_boundaries[[2]])
+  parameter_table <-
+    expand_grid(anchor_time = anchor_times,
+                map_dfr(windows, convert_window_)) %>%
+    mutate(window_start = anchor_time + lubridate::minutes(window_left),
+           window_stop = anchor_time + lubridate::minutes(window_right))
 
-  .data_subset <-
-    acc_data %>%
-    filter(timestamp >= time_boundaries[[1]], timestamp < time_boundaries[[2]])
-
-  if (nrow(.data_subset) > 0) {
-    window_summary <-
-      standardize_data_(.data_subset,
-                        !!enquo(counts),
-                        !!enquo(pa),
-                        !!enquo(valid)) %>%
-      summarise_chunk_(get_epochlength(.data_subset))
-
-    output <- bind_cols(output, window_summary)
-  }
-
-  output
+  parameter_table %>%
+    bind_cols(map2(.$time_start,
+                   .$time_stop,
+                   function(time_start, time_stop) {
+                     standardized_data %>%
+                       filter(timestamp >= time_start,
+                              timestamp < time_stop) %>%
+                       summarise_chunk_(epochlength)
+                   }))
 }
 
 convert_window_ <- function(window) {
@@ -57,5 +51,7 @@ convert_window_ <- function(window) {
 
   stopifnot(win_len > 0)
 
-  list(win_vec = win_vec, win_len = win_len)
+  tibble(window_left = win_vec[1],
+         window_right = win_vec[2],
+         window_length = win_len)
 }
