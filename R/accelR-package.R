@@ -3,22 +3,24 @@
 #' @name accelR
 #' @docType package
 #' @useDynLib accelR, .registration = TRUE
+#' @rawNamespace import(data.table, except = c(first, between, last, key))
+#' @import dtplyr
+#' @rawNamespace import(dplyr, except = c(first, between, id, last))
+#' @rawNamespace import(tsibble, except = c(key, id))
 #' @importFrom assertthat assert_that has_attr
-#' @importFrom tibble tibble as_tibble
-#' @importFrom tsibble tsibble
-#' @importFrom dplyr select select_at select_if
-#' @importFrom dplyr rename rename_at rename_if rename_all
-#' @importFrom dplyr filter filter_at filter_if filter_all
-#' @importFrom dplyr mutate mutate_at mutate_if mutate_all
-#' @importFrom dplyr transmute transmute_at transmute_if
-#' @importFrom dplyr summarise summarise_at summarise_if
-#' @importFrom dplyr arrange distinct group_by ungroup
-#' @importFrom dplyr tbl pull collect do count
-#' @importFrom dplyr vars starts_with ends_with matches
-#' @importFrom dplyr n first last row_number lag lead if_else case_when na_if
-#' @importFrom dplyr bind_rows bind_cols
-#' @importFrom magrittr %>%
+#' @importFrom lubridate is.POSIXct
+#' @importFrom lubridate mdy_hms ymd_hms
+#' @importFrom lubridate minutes seconds
+#' @importFrom lubridate floor_date round_date with_tz
+#' @importFrom purrr map map_chr map_dbl map_dfr map2 map2_dfr pmap
 #' @importFrom rlang list2 !! !!! has_name enquo enquos
+#' @importFrom stats quantile
+#' @importFrom stringr str_c str_detect str_extract str_length str_replace str_subset regex
+#' @importFrom tibble tibble as_tibble enframe
 NULL
+
+.datatable.aware <- TRUE
+
+moomoo <- TRUE
 
 globalVariables(".")

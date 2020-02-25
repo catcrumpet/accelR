@@ -3,13 +3,13 @@
 #' Calculates PA category given count data and other paramters. Returns a
 #' vector of values.
 #' @param counts Numeric vector of accelerometer values.
-#' @param epoch_len Epoch length in seconds.
+#' @param epochlength Epoch length in seconds.
 #' @param age Age in years as a numeric value.
 #' @param cut_params Cut parameters, default is Troiano cut parameters.
 #' @return An ordinal vector of the same length as \code{x}.
 #' @export
-categorize_pa <- function(counts, epoch_len, age, cut_params = pacuts_troiano) {
-  purrr::lift(cut)(c(x = list(counts * (60L / epoch_len)), cut_params(age)))
+categorize_pa <- function(counts, epochlength, age, cut_params = pacuts_troiano) {
+  purrr::lift(cut)(c(x = list(counts * (60L / epochlength)), cut_params(age)))
 }
 
 #' Cut parameters for Troiano
@@ -48,7 +48,7 @@ add_pa <- function(acc_data, counts, age, cut_params = pacuts_troiano, pa = "pa"
   acc_data %>%
     mutate(!!enquo(pa) :=
              categorize_pa(!!enquo(counts),
-                           epoch_len = get_epochlength(!!acc_data),
+                           epochlength = get_epochlength(!!acc_data),
                            age = !!age,
                            cut_params = !!cut_params))
 }

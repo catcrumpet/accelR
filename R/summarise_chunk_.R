@@ -1,53 +1,70 @@
-summarise_chunk_ <- function(std_data, epoch_len) {
-  epochs_min <- 60L / epoch_len
+summarise_chunk_ <- function(std_dt, epochlength) {
+  epochs_min <- 60L / epochlength
 
-  output_total <-
-    std_data %>%
-    summarise(
-      timestamp_start = if (n() == 0) lubridate::as_datetime(NA) else min(timestamp),
-      timestamp_stop = if (n() == 0) lubridate::as_datetime(NA) else max(timestamp),
+  if (nrow(std_dt) == 0) {
+    data.table(timestamp_start = lubridate::as_datetime(NA),
+               timestamp_stop = lubridate::as_datetime(NA),
 
-      epoch_length = !!epoch_len,
-      total_e = n(),
-      total_m = n() / epochs_min,
-      total_c = sum(counts),
+               epochlength = epochlength,
 
-      valid_e = sum(valid),
-      valid_m = sum(valid) / epochs_min,
-      valid_c = sum(counts[valid])) %>%
-    mutate(timestamp_stop = timestamp_stop + lubridate::seconds(epoch_len))
+               total_e = 0L,
+               total_m = 0,
+               total_c = 0L,
 
-  stopifnot(with(output_total, valid_m <= total_m))
-  stopifnot(with(output_total, valid_c <= total_c))
-
-  if (output_total$valid_m > 0) {
-    output_pa_min <-
-      std_data %>%
-      count(pa, valid, .drop = FALSE) %>%
-      ungroup() %>%
-      mutate(n = n / epochs_min) %>%
-      tidyr::spread(pa, n) %>%
-      rename_at(vars(-valid), ~stringr::str_c(., "m", sep = "_")) %>%
-      mutate_at(vars(-valid), ~tidyr::replace_na(., 0)) %>%
-      filter(valid) %>%
-      select(-valid)
-
-    output_pa_count <-
-      std_data %>%
-      group_by(valid, pa, .drop = FALSE) %>%
-      summarise(counts = sum(counts)) %>%
-      ungroup() %>%
-      tidyr::spread(pa, counts) %>%
-      rename_at(vars(-valid), ~stringr::str_c(., "c", sep = "_")) %>%
-      mutate_at(vars(-valid), ~tidyr::replace_na(., 0)) %>%
-      filter(valid) %>%
-      select(-valid)
-
-    stopifnot(all.equal(output_total$valid_m, rowSums(output_pa_min)))
-    stopifnot(all.equal(output_total$valid_c, rowSums(output_pa_count)))
-
-    bind_cols(output_total, output_pa_min, output_pa_count)
+               valid_e = 0L,
+               valid_m = 0,
+               valid_c = 0L)
   } else {
-    output_total
+    output_total <-
+      std_dt %>%
+      mutate(timestamp_start = min(timestamp),
+             timestamp_stop = max(timestamp) + lubridate::seconds(epochlength),
+
+             epochlength = epochlength,
+
+             total_e = n(),
+             total_m = n() / epochs_min,
+             total_c = sum(counts),
+
+             valid_e = sum(valid),
+             valid_m = sum(valid) / epochs_min,
+             valid_c = sum(counts[valid]))
+
+    stopifnot(with(output_total, valid_m <= total_m))
+    stopifnot(with(output_total, valid_c <= total_c))
+
+    if (output_total$valid_m > 0) {
+      output_pa_min <-
+        std_dt %>%
+        as_tibble() %>%
+        count(pa, valid, .drop = FALSE) %>%
+        mutate(n = n / epochs_min) %>%
+        tidyr::spread(pa, n) %>%
+        lazy_dt(immutable = FALSE) %>%
+        rename_at(vars(-valid), ~stringr::str_c(., "m", sep = "_")) %>%
+        mutate_at(vars(-valid), ~tidyr::replace_na(., 0)) %>%
+        filter(valid) %>%
+        select(-valid)
+
+      output_pa_count <-
+        std_dt %>%
+        as_tibble() %>%
+        group_by(valid, pa, .drop = FALSE) %>%
+        summarise(counts = sum(counts)) %>%
+        ungroup() %>%
+        tidyr::spread(pa, counts) %>%
+        lazy_dt(immutable = FALSE) %>%
+        rename_at(vars(-valid), ~stringr::str_c(., "c", sep = "_")) %>%
+        mutate_at(vars(-valid), ~tidyr::replace_na(., 0)) %>%
+        filter(valid) %>%
+        select(-valid)
+
+      stopifnot(all.equal(output_total$valid_m, rowSums(output_pa_min)))
+      stopifnot(all.equal(output_total$valid_c, rowSums(output_pa_count)))
+
+      bind_cols(output_total, output_pa_min, output_pa_count)
+    } else {
+      output_total
+    }
   }
 }

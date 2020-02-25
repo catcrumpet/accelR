@@ -7,7 +7,7 @@ standardize_data_ <- function(acc_data, counts, pa, valid, data_table = FALSE) {
               valid = !!enquo(valid)) %>%
     {
       if (data_table) {
-        data.table::setkey(data.table::as.data.table(.), timestamp)
+        lazy_dt(., immutable = FALSE, key_by = timestamp)
       } else {
         .
       }

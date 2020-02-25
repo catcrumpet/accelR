@@ -4,12 +4,12 @@
 \alias{categorize_nonwear}
 \title{Categorize nonwear}
 \usage{
-categorize_nonwear(counts, epoch_len, method = nonwear_troiano, ...)
+categorize_nonwear(counts, epochlength, algorithm = nonwear_troiano, ...)
 }
 \arguments{
 \item{counts}{Numeric vector of accelerometer values.}
 
-\item{epoch_len}{Epoch length in seconds.}
+\item{epochlength}{Epoch length in seconds.}
 }
 \description{
 Categorize nonwear

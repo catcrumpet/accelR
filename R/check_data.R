@@ -44,7 +44,7 @@ check_data_integrity <- function(acc_data) {
   if (!tsibble::is_ordered(acc_data)) {
     stop("Data is not ordered.")
   }
-  if (tsibble::is_duplicated(acc_data, index = timestamp)) {
+  if (tsibble::is_duplicated(acc_data, index = !!index(acc_data))) {
     stop("Data contains duplicated observations.")
   }
   invisible(TRUE)
@@ -69,9 +69,9 @@ check_agddata_epochcount <- function(agd_data, agd_settings) {
 }
 
 # chk_d_miss_
-check_data_missing <- function(acc_data, var) {
-  if (anyNA(acc_data[[var]])) {
-    stop("Data contains missing observations on ", var, ".")
+check_data_missing <- function(acc_data, variable) {
+  if (anyNA(acc_data[[variable]])) {
+    stop("Data contains missing observations on ", variable, ".")
   }
   invisible(TRUE)
 }

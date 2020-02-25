@@ -4,12 +4,12 @@
 \alias{categorize_pa}
 \title{Categorize accelerometer epochs into PA categories}
 \usage{
-categorize_pa(counts, epoch_len, age, cut_params = pacuts_troiano)
+categorize_pa(counts, epochlength, age, cut_params = pacuts_troiano)
 }
 \arguments{
 \item{counts}{Numeric vector of accelerometer values.}
 
-\item{epoch_len}{Epoch length in seconds.}
+\item{epochlength}{Epoch length in seconds.}
 
 \item{age}{Age in years as a numeric value.}
 

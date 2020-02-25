@@ -6,32 +6,37 @@ summarise_window <- function(acc_data,
                              pa = pa,
                              valid = valid) {
 
-  stopifnot(lubridate::is.POSIXct(anchor_times))
+  stopifnot(is.POSIXct(anchor_times))
   # msg = "Anchor times must be a vector of POSIXct objects."
 
   epochlength <- get_epochlength(acc_data)
 
-  standardized_datatable <-
+  parameter_table <-
+    tidyr::expand_grid(anchor_time = anchor_times,
+                       map_dfr(windows, convert_window_)) %>%
+    mutate(window_start = anchor_time + minutes(window_left),
+           window_stop = anchor_time + minutes(window_right))
+
+  acc_std_dt <-
     standardize_data_(acc_data,
                       !!enquo(counts),
                       !!enquo(pa),
                       !!enquo(valid),
-                      data_table = TRUE)
-
-  parameter_table <-
-    expand_grid(anchor_time = anchor_times,
-                map_dfr(windows, convert_window_m_)) %>%
-    mutate(window_start = anchor_time + lubridate::minutes(window_left),
-           window_stop = anchor_time + lubridate::minutes(window_right))
+                      data_table = TRUE) %>%
+    filter(timestamp >= parameter_table$window_start,
+           timestamp < parameter_table$window_stop)
 
   parameter_table %>%
     bind_cols(map2_dfr(.$window_start,
                        .$window_stop,
-                       function(window_start, window_stop) {
-                         data.table:::subset.data.table(standardized_datatable,
-                                                        subset = timestamp >= window_start & timestamp < window_stop) %>%
-                           summarise_chunk_(epochlength)
-                       }))
+                       ~summarise_window_(acc_std_dt, .x, .y)))
+}
+
+summarise_window_ <- function(std_dt, window_start, window_stop) {
+  std_dt %>%
+    filter(timestamp >= window_start,
+           timestamp < window_stop) %>%
+    summarise_chunk_(epochlength)
 }
 
 convert_window_ <- function(window) {
@@ -58,4 +63,6 @@ convert_window_ <- function(window) {
          window_length = win_len)
 }
 
-convert_window_m_ <- memoise::memoise(convert_window_)
+if (moomoo) {
+  convert_window_ <- memoise::memoise(convert_window_)
+}

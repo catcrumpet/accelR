@@ -5,7 +5,5 @@ calculate_magnitude <- function(...) {
 
 #' @export
 add_magnitude <- function(acc_data, ..., magnitude = "magnitude") {
-  acc_data %>%
-    mutate(!!magnitude :=
-                  calculate_magnitude(!!enquo(...)))
+  mutate(acc_data, !!magnitude := calculate_magnitude(!!enquo(...)))
 }
