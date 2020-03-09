@@ -1,80 +1,104 @@
-identify_bouts_pacat_ <- function(std_tb, epochlength, min_len = 0, max_len = Inf) {
+identify_bouts_pacat_ <- function(std_dt, epochlength) {
   epochs_min <- 60L / epochlength
 
-  # std_tb == tibble(timestamp, counts, pa, valid)
-  std_tb %>%
-    group_by(.bout_id = rleidv(pa), .pa = pa, .valid = valid) %>%
+  std_dt %>%
+    as_tibble() %>%
+    rename(.pa = pa, .valid = valid) %>%
+    as.data.table(key = c(".pa", ".valid")) %>%
+    lazy_dt(immutable = FALSE) %>%
+    mutate(.bout_id = rleidv(list(.pa, .valid))) %>%
+    group_by(.bout_id, .pa, .valid) %>%
     summarise(.from = min(timestamp),
-              .to = max(timestamp) + seconds(!!epochlength),
+              .to = max(timestamp) + seconds(epochlength),
               .epochs = n(),
               .counts = sum(counts)) %>%
     ungroup() %>%
     mutate(.mins = .epochs / epochs_min) %>%
-    select(-.bout_id)
+    as_tibble() %>%
+    select(.bout_id:.epochs, .mins, .counts, everything())
 }
 
-identify_bouts_criterion_ <- function(std_tb, epochlength, pa_criterion) {
+identify_bouts_criterion_ <- function(std_dt, epochlength, pa_criterion) {
   epochs_min <- 60L / epochlength
   .pacrit <- enquo(pa_criterion)
 
-  # std_tb == tibble(timestamp, counts, pa, valid)
-  std_tb %>%
+  std_dt %>%
+    as_tibble() %>%
     mutate(.pa = !!.pacrit) %>%
-    rename(.valid = valid) %>%
-    group_by(.bout_id = rleidv(.pa), .pa, .valid) %>%
+    select(timestamp, counts, .pa, .valid = valid) %>%
+    as.data.table(key = c(".pa", ".valid")) %>%
+    lazy_dt(immutable = FALSE) %>%
+    mutate(.bout_id = rleidv(list(.pa, .valid))) %>%
+    group_by(.bout_id, .pa, .valid) %>%
     summarise(.from = min(timestamp),
-              .to = max(timestamp) + seconds(!!epochlength),
+              .to = max(timestamp) + seconds(epochlength),
               .epochs = n(),
               .counts = sum(counts)) %>%
     ungroup() %>%
-    mutate(.mins = .data$.epochs / epochs_min,
-           .pa_criterion = rlang::as_label(.data$.pacrit)) %>%
-    select(.pa_criterion, everything()) %>%
-    select(-.bout_id)
+    mutate(.mins = .epochs / epochs_min,
+           .pa_criterion = rlang::as_label(.pacrit)) %>%
+    as_tibble() %>%
+    select(.pa_criterion, .bout_id:.epochs, .mins, everything())
 }
 
-identify_bouts_criterion_breaks_ <- function(std_tb, epochlength, pa_criterion, max_break_len) {
+identify_bouts_criterion_breaks_ <- function(std_dt, epochlength, pa_criterion, max_break_mins) {
   epochs_min <- 60L / epochlength
-  # min_bout_len <- min_bout_len * epochs_min
-  max_break_len <- max_break_len * epochs_min
-
   .pacrit <- enquo(pa_criterion)
+  max_break_len <- max_break_mins * epochs_min
 
-  # std_tb == tibble(timestamp, counts, pa, valid)
-  std_tb %>%
+  std_ldt_rev <-
+    std_dt %>%
+    as_tibble() %>%
     mutate(.pa = !!.pacrit) %>%
-    group_by(rleid = rleidv(.pa), .pa, valid) %>%
+    select(timestamp, counts, .pa, .valid = valid) %>%
+    as.data.table(key = c(".pa", ".valid")) %>%
+    lazy_dt(immutable = FALSE) %>%
+    mutate(.rleid = data.table::rleidv(list(.pa, .valid))) %>%
+    group_by(.rleid, .pa, .valid) %>%
     summarise(.from = min(timestamp),
-              .to = max(timestamp) + seconds(!!epochlength),
+              .to = max(timestamp) + seconds(epochlength),
               .epochs = n(),
               .counts = sum(counts)) %>%
     ungroup() %>%
     mutate(.pa_rev =
-             if_else(!(.pa & valid) &
-                       lag(.pa & valid, default = FALSE) &
-                       lead(.pa & valid, default = FALSE) &
+             if_else(!(.pa & .valid) &
+                       lag(.pa & .valid, default = FALSE) &
+                       lead(.pa & .valid, default = FALSE) &
                        .epochs <= max_break_len,
                      TRUE, .pa),
-           .valid = .pa_rev | valid) %>%
-    group_by(.bout_id = rleidv(.pa_rev), .pa_rev, .valid) %>%
+           .valid = .pa_rev | .valid) %>%
+    compute()
+
+  std_ldt_rev %>%
+    mutate(.bout_id = data.table::rleidv(list(.pa_rev, .valid))) %>%
+    group_by(.bout_id, .pa_rev, .valid) %>%
     summarise(.from = min(.from),
               .to = max(.to),
               .epochs_total = sum(.epochs),
               .counts_total = sum(.counts),
-              .mins = .epochs_total / epochs_min,
               .epochs_pa = sum(.epochs[.pa]),
-              .counts_pa = sum(.counts[.pa]),
-              .mins_pa = .epochs_pa / epochs_min) %>%
+              .counts_pa = sum(.counts[.pa])) %>%
     ungroup() %>%
-    rename(.pa = .pa_rev, .epochs = .epochs_total, .counts = .counts_total) %>%
+    mutate(.mins = .epochs_total / epochs_min,
+           .mins_pa = .epochs_pa / epochs_min) %>%
+    as_tibble() %>%
     mutate(.pa_criterion = rlang::as_label(.pacrit)) %>%
-    select(.pa_criterion, everything()) %>%
-    select(-.bout_id)
+    select(.pa_criterion,
+           .bout_id,
+           .pa = .pa_rev,
+           .valid:.to,
+           .epochs = .epochs_total,
+           .mins,
+           .counts = .counts_total,
+           .epochs_pa,
+           .mins_pa,
+           .counts_pa,
+           everything())
 }
 
-summarise_bouts_criteria_ <- function(bouts_data, ..., prefilter = TRUE) {
+summarise_bouts_criteria_ <- function(bouts_tb, ..., prefilter = TRUE) {
   .prefilt <- enquo(prefilter)
-  .btsb <- filter(bouts_data, !!.prefilt)
+  .btsb <- filter(bouts_tb, !!.prefilt)
   .crits <- enquos(...)
 
   tibble(.prefilter = rlang::as_label(.prefilt),
@@ -90,9 +114,9 @@ summarise_bouts_criteria_ <- function(bouts_data, ..., prefilter = TRUE) {
     mutate(.crit_cnts_rat = .crit_cnts / .ovrl_cnts)
 }
 
-summarise_bouts_pctls_ <- function(bouts_data, percentiles, prefilter = TRUE) {
+summarise_bouts_pctls_ <- function(bouts_tb, percentiles, prefilter = TRUE) {
   .prefilt <- enquo(prefilter)
-  .btsb <- filter(bouts_data, !!.prefilt)
+  .btsb <- filter(bouts_tb, !!.prefilt)
 
   .pctls <- percentiles
 
@@ -104,12 +128,12 @@ summarise_bouts_pctls_ <- function(bouts_data, percentiles, prefilter = TRUE) {
          .pctl_mins = .quantiles)
 }
 
-summarise_bouts_ <- function(bouts_data, lens, pctls, prefilter = TRUE) {
+summarise_bouts_ <- function(bouts_tb, lengths, percentiles, prefilter = TRUE) {
   .prefilt <- enquo(prefilter)
-  .btsb <- filter(bouts_data, !!.prefilt)
+  .btsb <- filter(bouts_tb, !!.prefilt)
 
   total_minutes <-
-    tibble(lengths = lens) %>%
+    tibble(lengths = !!lengths) %>%
     mutate(total_minutes =
              map_dbl(lengths,
                      ~sum(filter(.btsb, .mins > .x)$.mins))) %>%
@@ -129,9 +153,9 @@ summarise_bouts_ <- function(bouts_data, lens, pctls, prefilter = TRUE) {
     select(cnts_tot, everything())
 
   duration_percentiles <-
-    quantile(.btsb$.mins, probs = pctls, names = FALSE) %>%
+    quantile(.btsb$.mins, probs = percentiles, names = FALSE) %>%
     enframe(name = "percentile", value = "minutes") %>%
-    mutate(percentile = as.integer(pctls * 100)) %>%
+    mutate(percentile = as.integer(percentiles * 100)) %>%
     mutate(percentile = str_c("mins_len_p", str_pad_0_adj(percentile))) %>%
     tidyr::spread(percentile, minutes)
 

@@ -8,7 +8,7 @@
 #' @param cut_params Cut parameters, default is Troiano cut parameters.
 #' @return An ordinal vector of the same length as \code{x}.
 #' @export
-categorize_pa <- function(counts, epochlength, age, cut_params = pacuts_troiano) {
+categorize_pa <- function(counts, epochlength, age, cut_params = pa_params_troiano) {
   purrr::lift(cut)(c(x = list(counts * (60L / epochlength)), cut_params(age)))
 }
 
@@ -18,7 +18,7 @@ categorize_pa <- function(counts, epochlength, age, cut_params = pacuts_troiano)
 #' @param age Age in years as a numeric value.
 #' @return A list of parameters for the cut function.
 #' @export
-pacuts_troiano <- function(age) {
+pa_params_troiano <- function(age) {
   case_when(age == 6 ~ c(1400, 3758),
             age == 7 ~ c(1515, 3947),
             age == 8 ~ c(1638, 4147),
@@ -44,11 +44,11 @@ pacuts_troiano <- function(age) {
 #'
 #' Convenience wrapper for \code{categorize_pa}
 #' @export
-add_pa <- function(acc_data, counts, age, cut_params = pacuts_troiano, pa = "pa") {
-  acc_data %>%
-    mutate(!!enquo(pa) :=
-             categorize_pa(!!enquo(counts),
-                           epochlength = get_epochlength(!!acc_data),
-                           age = !!age,
-                           cut_params = !!cut_params))
+add_pa <- function(acc_data, counts, age, cut_params = pa_params_troiano, pa = "pa") {
+  pa_vals <- categorize_pa(pull(acc_data, !!enquo(counts)),
+                           epochlength = get_epochlength(acc_data),
+                           age = age,
+                           cut_params = cut_params)
+
+  mutate(acc_data, !!enquo(pa) := pa_vals)
 }

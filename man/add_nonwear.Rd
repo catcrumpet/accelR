@@ -7,7 +7,7 @@
 add_nonwear(
   acc_data,
   counts,
-  method = nonwear_troiano,
+  algorithm = nonwear_troiano,
   ...,
   nonwear = "nonwear"
 )

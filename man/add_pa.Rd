@@ -4,7 +4,7 @@
 \alias{add_pa}
 \title{Add PA categories to accelerometer data}
 \usage{
-add_pa(acc_data, counts, age, cut_params = pacuts_troiano, pa = "pa")
+add_pa(acc_data, counts, age, cut_params = pa_params_troiano, pa = "pa")
 }
 \description{
 Convenience wrapper for \code{categorize_pa}

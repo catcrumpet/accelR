@@ -10,9 +10,9 @@ categorize_nonwear <- function(counts, epochlength, algorithm = nonwear_troiano,
 nonwear_troiano <- function(counts,
                             epochlength,
                             activity_threshold = 0,
-                            min_period_len = 60,
+                            min_nonwear_mins = 60,
                             max_nonzero_count = Inf,
-                            spike_tolerance = 2,
+                            spike_tolerance_mins = 2,
                             spike_stoplevel = 100,
                             endat_nnz_seq = TRUE) {
   epochs_min <- 60L / epochlength
@@ -20,9 +20,9 @@ nonwear_troiano <- function(counts,
   troiano_args <-
     list(counts = counts,
          activity_threshold = activity_threshold / epochs_min,
-         min_period_len = min_period_len * epochs_min,
+         min_period_len = min_nonwear_mins * epochs_min,
          max_nonzero_count = max_nonzero_count / epochs_min,
-         spike_tolerance = spike_tolerance * epochs_min,
+         spike_tolerance = spike_tolerance_mins * epochs_min,
          spike_stoplevel = spike_stoplevel / epochs_min)
 
   if (endat_nnz_seq) {
@@ -67,10 +67,10 @@ count_nonwear_troiano_seq_ <- function(counts,
 
   check_x_missing(counts)
 
-  acc_sequence <- seq_along(counts)
+  counts_seq <- seq_along(counts)
 
-  tibble(row = acc_sequence,
-         counts = counts) %>%
+  data.table(row = counts_seq,
+             counts = counts) %>%
     lazy_dt(immutable = FALSE) %>%
     mutate(wear =
              case_when(counts > spike_stoplevel ~ 2L,
@@ -92,9 +92,10 @@ count_nonwear_troiano_seq_ <- function(counts,
               .n = sum(.n)) %>%
     filter(wear == 0L, .n >= min_period_len) %>%
     transmute(.from, .to = .from + .n - 1L) %>%
+    as.data.table() %>%
     pmap(~..1:..2) %>%
     unlist() %>%
-    {acc_sequence %in% .}
+    {counts_seq %in% .}
 }
 
 count_nonwear_troiano_nonseq_ <- function(counts,
@@ -105,9 +106,9 @@ count_nonwear_troiano_nonseq_ <- function(counts,
                                           spike_stoplevel) {
   check_x_missing(counts)
 
-  acc_sequence <- seq_along(counts)
+  counts_seq <- seq_along(counts)
 
-  tibble(row = acc_sequence,
+  tibble(row = counts_seq,
          counts = if_else(counts > max_nonzero_count, 0, counts),
          .n = wle(counts, activity_threshold, spike_tolerance, spike_stoplevel)) %>%
     lazy_dt(immutable = FALSE) %>%
@@ -118,16 +119,17 @@ count_nonwear_troiano_nonseq_ <- function(counts,
            b = .to - dplyr::first(.from)) %>%
     filter(overlap(a, b)) %>%
     select(.from, .to, .n) %>%
+    as.data.table() %>%
     pmap(~..1:..2) %>%
     unlist() %>%
-    {acc_sequence %in% .}
+    {counts_seq %in% .}
 }
 
 #' Convenience wrapper for \code{categorize_nonwear_troiano}
 #' @export
 add_nonwear <- function(acc_data,
                         counts,
-                        method = nonwear_troiano,
+                        algorithm = nonwear_troiano,
                         ...,
                         nonwear = "nonwear") {
   epochlength <- get_epochlength(acc_data)
@@ -136,7 +138,7 @@ add_nonwear <- function(acc_data,
     mutate(!!enquo(nonwear) :=
              categorize_nonwear(!!enquo(counts),
                                 epochlength = !!epochlength,
-                                method = !!method,
+                                algorithm = !!algorithm,
                                 ...))
 
 }

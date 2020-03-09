@@ -5,8 +5,8 @@
 #' @useDynLib accelR, .registration = TRUE
 #' @rawNamespace import(data.table, except = c(first, between, last, key))
 #' @import dtplyr
-#' @rawNamespace import(dplyr, except = c(first, between, id, last))
-#' @rawNamespace import(tsibble, except = c(key, id))
+#' @rawNamespace import(dplyr, except = c(id))
+#' @import tsibble
 #' @importFrom assertthat assert_that has_attr
 #' @importFrom lubridate is.POSIXct
 #' @importFrom lubridate mdy_hms ymd_hms
