@@ -4,8 +4,8 @@ identify_bouts_pacat_ <- function(std_dt, epochlength) {
   std_dt %>%
     as_tibble() %>%
     rename(.pa = pa, .valid = valid) %>%
-    as.data.table(key = c(".pa", ".valid")) %>%
-    lazy_dt(immutable = FALSE) %>%
+    # as.data.table(key = c(".pa", ".valid")) %>%
+    # lazy_dt(immutable = FALSE) %>%
     mutate(.bout_id = rleidv(list(.pa, .valid))) %>%
     group_by(.bout_id, .pa, .valid) %>%
     summarise(.from = min(timestamp),
@@ -14,7 +14,7 @@ identify_bouts_pacat_ <- function(std_dt, epochlength) {
               .counts = sum(counts)) %>%
     ungroup() %>%
     mutate(.mins = .epochs / epochs_min) %>%
-    as_tibble() %>%
+    # as_tibble() %>%
     select(.bout_id:.epochs, .mins, .counts, everything())
 }
 
@@ -26,8 +26,8 @@ identify_bouts_criterion_ <- function(std_dt, epochlength, pa_criterion) {
     as_tibble() %>%
     mutate(.pa = !!.pacrit) %>%
     select(timestamp, counts, .pa, .valid = valid) %>%
-    as.data.table(key = c(".pa", ".valid")) %>%
-    lazy_dt(immutable = FALSE) %>%
+    # as.data.table(key = c(".pa", ".valid")) %>%
+    # lazy_dt(immutable = FALSE) %>%
     mutate(.bout_id = rleidv(list(.pa, .valid))) %>%
     group_by(.bout_id, .pa, .valid) %>%
     summarise(.from = min(timestamp),
@@ -37,7 +37,7 @@ identify_bouts_criterion_ <- function(std_dt, epochlength, pa_criterion) {
     ungroup() %>%
     mutate(.mins = .epochs / epochs_min,
            .pa_criterion = rlang::as_label(.pacrit)) %>%
-    as_tibble() %>%
+    # as_tibble() %>%
     select(.pa_criterion, .bout_id:.epochs, .mins, everything())
 }
 
@@ -51,8 +51,8 @@ identify_bouts_criterion_breaks_ <- function(std_dt, epochlength, pa_criterion, 
     as_tibble() %>%
     mutate(.pa = !!.pacrit) %>%
     select(timestamp, counts, .pa, .valid = valid) %>%
-    as.data.table(key = c(".pa", ".valid")) %>%
-    lazy_dt(immutable = FALSE) %>%
+    # as.data.table(key = c(".pa", ".valid")) %>%
+    # lazy_dt(immutable = FALSE) %>%
     mutate(.rleid = data.table::rleidv(list(.pa, .valid))) %>%
     group_by(.rleid, .pa, .valid) %>%
     summarise(.from = min(timestamp),
@@ -66,8 +66,8 @@ identify_bouts_criterion_breaks_ <- function(std_dt, epochlength, pa_criterion, 
                        lead(.pa & .valid, default = FALSE) &
                        .epochs <= max_break_len,
                      TRUE, .pa),
-           .valid = .pa_rev | .valid) %>%
-    compute()
+           .valid = .pa_rev | .valid)
+    # compute()
 
   std_ldt_rev %>%
     mutate(.bout_id = data.table::rleidv(list(.pa_rev, .valid))) %>%
@@ -81,7 +81,7 @@ identify_bouts_criterion_breaks_ <- function(std_dt, epochlength, pa_criterion, 
     ungroup() %>%
     mutate(.mins = .epochs_total / epochs_min,
            .mins_pa = .epochs_pa / epochs_min) %>%
-    as_tibble() %>%
+    # as_tibble() %>%
     mutate(.pa_criterion = rlang::as_label(.pacrit)) %>%
     select(.pa_criterion,
            .bout_id,
