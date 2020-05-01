@@ -40,6 +40,7 @@ read_agd_raw_ <- function(file, tz = "UTC") {
         tbl("settings") %>%
         select(settingName, settingValue) %>%
         collect() %>%
+        distinct() %>%
         tidyr::spread(settingName, settingValue, convert = TRUE) %>%
         mutate_at(vars(height, mass, age,
                        matches("dateOfBirth"),
@@ -47,9 +48,9 @@ read_agd_raw_ <- function(file, tz = "UTC") {
                        ends_with("date")), ~na_if(., 0)) %>%
         mutate(sex = if_else(sex %in% "Undefined", NA_character_, sex)) %>%
         mutate_at(vars(finished), as.logical) %>%
-        mutate_at(vars(height, mass, age), as.numeric) %>%
-        mutate_at(vars(customsleepparameters, notes), as.character) %>%
-        mutate_at(vars(matches("dateOfBirth"),
+        mutate_at(vars(any_of(c("height", "mass", "age"))), as.numeric) %>%
+        mutate_at(vars(any_of(c("customsleepparameters", "notes"))), as.character)
+        mutate_at(vars(any_of(c("dateOfBirth")),
                        ends_with("time"),
                        ends_with("date")),
                   ~convert_time_agd_(., tz = tz)) %>%
