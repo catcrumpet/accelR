@@ -142,7 +142,7 @@ summarise_bouts_ <- function(bouts_tb, lengths, percentiles, prefilter = TRUE) {
     mutate(mins_avg = mean(.btsb$.mins))
 
   count_ratio <-
-    tibble(lengths = lens) %>%
+    tibble(lengths = lengths) %>%
     mutate(ratio =
              map_dbl(lengths,
                      ~nrow(filter(.btsb, .mins > .x))) %>%
