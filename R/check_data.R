@@ -16,11 +16,15 @@ is_stoppy_bad <- function(acc_data, epochlength, stoptime) {
 }
 
 # chk_d_stop_
-check_agddata_stoptime <- function(agd_data, agd_settings) {
+check_agddata_stoptime <- function(agd_data, agd_settings, warning = FALSE) {
   if (is_stoppy_bad(agd_data,
                     get_epochlength(agd_data),
                     agd_settings$stopdatetime[[1]])) {
-    stop("Data stop time does not match setting stop time.")
+    if (warning) {
+      warning("Data stop time does not match setting stop time.")
+    } else {
+      stop("Data stop time does not match setting stop time.")
+    }
   }
   invisible(TRUE)
 }

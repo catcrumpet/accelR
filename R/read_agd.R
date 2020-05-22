@@ -19,7 +19,7 @@ read_agd <- function(file, tz = "UTC", settings = FALSE) {
     check_agddata_epochlength(acc_data, agd_settings)
     check_agddata_epochcount(acc_data, agd_settings)
     check_agddata_starttime(acc_data, agd_settings)
-    check_agddata_stoptime(acc_data, agd_settings)
+    check_agddata_stoptime(acc_data, agd_settings, warning = TRUE)
     check_data_gaps(acc_data)
 
     if (settings) {
