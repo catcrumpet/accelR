@@ -49,7 +49,7 @@ read_csv_actigraph_raw_ <- function(file, tz = "UTC") {
 
   stopifnot(nrow(preamble) %in% 0:1)
 
-  header <- !str_detect(first_15[skip + 1], "^[,\\d]")
+  header <- !str_detect(fread(file = file, nrows = 1, skip = skip), "^[,\\d]")
 
   data <-
     if (header) {
