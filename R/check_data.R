@@ -65,9 +65,13 @@ check_agddata_epochlength <- function(agd_data, agd_settings) {
   invisible(TRUE)
 }
 
-check_agddata_epochcount <- function(agd_data, agd_settings) {
+check_agddata_epochcount <- function(agd_data, agd_settings, warning = FALSE) {
   if (nrow(agd_data) != agd_settings$epochcount[[1]]) {
-    stop("Actual epoch count does not match recorded epoch count.")
+    if (warning) {
+      warning("Actual epoch count does not match recorded epoch count.")
+    } else {
+      stop("Actual epoch count does not match recorded epoch count.")
+    }
   }
   invisible(TRUE)
 }
