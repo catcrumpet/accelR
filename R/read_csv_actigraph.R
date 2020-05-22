@@ -49,13 +49,13 @@ read_csv_actigraph_raw_ <- function(file, tz = "UTC") {
 
   stopifnot(nrow(preamble) %in% 0:1)
 
-  header <- !str_detect(fread(file = file, nrows = 1, skip = skip), "^[,\\d]")
+  header <- !str_detect(readr::read_lines(file = file, skip = skip, n_max = 1), "^[,\\d]")
 
   data <-
     if (header) {
-      read_csv_actigraph_raw_header_(file, skip, preamble)
+      read_csv_actigraph_raw_header_(file, skip, preamble, tz)
     } else {
-      read_csv_actigraph_raw_noheader_(file, skip, preamble)
+      read_csv_actigraph_raw_noheader_(file, skip, preamble, tz)
     }
 
   list(data = data,
@@ -110,7 +110,7 @@ process_preamble_ <- function(file, tz = "UTC") {
   list(preamble = preamble, skip = skip, preamble_raw = preamble_raw)
 }
 
-read_csv_actigraph_raw_header_ <- function(file, skip, preamble) {
+read_csv_actigraph_raw_header_ <- function(file, skip, preamble, tz) {
   data_raw <-
     fread(file = file, sep = ",", skip = skip) %>%
     as_tibble() %>%
@@ -142,7 +142,7 @@ read_csv_actigraph_raw_header_ <- function(file, skip, preamble) {
              with_tz(tzone = tz))
 }
 
-read_csv_actigraph_raw_noheader_ <- function(file, skip, preamble) {
+read_csv_actigraph_raw_noheader_ <- function(file, skip, preamble, tz) {
   fread(file = file, sep = ",", header = FALSE, skip = skip) %>%
     as_tibble() %>%
     rename_all(~str_replace(., "^V", "axis")) %>%
