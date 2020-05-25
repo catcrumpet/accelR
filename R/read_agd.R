@@ -72,7 +72,7 @@ read_agd_raw_ <- function(file, tz = "UTC") {
         rename(timestamp = datatimestamp) %>%
         mutate(timestamp = (timestamp - baseline_time_raw) / 1e+07) %>%
         mutate_if(is.numeric, as.integer) %>%
-        mutate(timestamp = baseline_time + seconds(timestamp))
+        mutate(timestamp = with_tz(with_tz(baseline_time, tzone = "UTC") + seconds(timestamp), tzone = tz))
 
     list(data = data, settings = settings)
 }
