@@ -136,7 +136,7 @@ add_nonwear <- function(acc_data,
 
   acc_data %>%
     mutate(!!enquo(nonwear) :=
-             categorize_nonwear(!!enquo(counts),
+             categorize_nonwear(pull(acc_data, !!enquo(counts)),
                                 epochlength = !!epochlength,
                                 algorithm = !!algorithm,
                                 ...))
