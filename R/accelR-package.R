@@ -11,7 +11,7 @@
 #' @importFrom lubridate is.POSIXct
 #' @importFrom lubridate mdy_hms ymd_hms
 #' @importFrom lubridate minutes seconds
-#' @importFrom lubridate floor_date round_date with_tz
+#' @importFrom lubridate floor_date round_date with_tz force_tz
 #' @importFrom purrr map map_chr map_dbl map_dfr map2 map2_dfr pmap
 #' @importFrom rlang list2 !! !!! has_name enquo enquos
 #' @importFrom stats quantile

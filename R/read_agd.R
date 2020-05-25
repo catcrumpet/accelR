@@ -71,6 +71,7 @@ read_agd_raw_ <- function(file, tz = "UTC") {
 }
 
 convert_time_agd_ <- function(time, tz) {
-    anytime::anytime(time / 1e+07 - 62135596800, tz = tz)
+    anytime::anytime(time / 1e+07 - 62135596800, tz = "UTC") %>%
+        lubridate::force_tz(tzone = tz)
     # as.POSIXct(time / 1e7, origin = "0001-01-01 00:00:00", tz = tz)
 }
