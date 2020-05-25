@@ -53,25 +53,31 @@ read_agd_raw_ <- function(file, tz = "UTC") {
         mutate_at(vars(any_of(c("dateOfBirth")),
                        ends_with("time"),
                        ends_with("date")),
-                  ~convert_time_agd_(., tz = tz)) %>%
+                  ~convert_time_(., tz = tz)) %>%
         select(pull(tbl(db, "settings"), settingName)) %>%
         rename_all(~tolower(stringr::str_replace_all(., "\\s", "_"))) %>%
         mutate_at(vars(starts_with("epoch")), as.integer)
 
-    data <-
+    raw_data <-
         db %>%
         tbl("data") %>%
         collect() %>%
-        rename_all(tolower) %>%
+        rename_all(tolower)
+
+    baseline_time_raw <- raw_data$datatimestamp[[1]]
+    baseline_time <- convert_time_(baseline_time_raw, tz)
+
+    data <-
+        raw_data %>%
         rename(timestamp = datatimestamp) %>%
-        mutate(timestamp = convert_time_agd_(timestamp, tz = tz)) %>%
-        mutate_if(is.numeric, as.integer)
+        mutate(timestamp = (timestamp - baseline_time_raw) / 1e+07) %>%
+        mutate_if(is.numeric, as.integer) %>%
+        mutate(timestamp = baseline_time + seconds(timestamp))
 
     list(data = data, settings = settings)
 }
 
-convert_time_agd_ <- function(time, tz) {
-    anytime::anytime(time / 1e+07 - 62135596800, tz = "UTC") %>%
-        lubridate::force_tz(tzone = tz)
-    # as.POSIXct(time / 1e7, origin = "0001-01-01 00:00:00", tz = tz)
+convert_time_ <- function(time, tz) {
+    # anytime::anytime(time / 1e+07 - 62135596800)
+    force_tz(as.POSIXct(time / 1e7, origin = "0001-01-01 00:00:00", tz = "UTC"), tzone = tz)
 }
