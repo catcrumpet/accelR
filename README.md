@@ -64,6 +64,26 @@ all ActiGraph accelerometers collect data on three axes. Also, we can
 see the timezone/locale (America/Los\_Angeles) and the epoch length (10
 seconds).
 
+Data need to pass several checks:
+
+1.  The data is ordered by timestamp (earliest to latest).
+2.  Each observation is regularly spaced by a constant time period
+    (i.e., the epoch length).
+3.  No observations are duplicates.
+4.  The data spans the entire specified data collection time period.
+5.  The data contains no gaps in observations.
+6.  The epoch length of the data must an exact divisor of 60.
+
+For better display of the following operations, we will remove the
+unnecessary columns, preserving only the accelerometer counts columns.
+
+``` r
+good_data <- good_data[, c("timestamp", "axis1", "axis2", "axis3")]
+good_data
+```
+
+=======
+
 Data need to pass several checks: 1. The data is ordered by timestamp
 (earliest to latest). 2. Each observation is regularly spaced by a
 constant time period (i.e., the epoch length). 3. No observations are

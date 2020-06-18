@@ -47,6 +47,7 @@ good_data
 The print out displays how many observations/epochs there are (`r nrow(good_data)`) and the counts for the three axes (`axis1`, `axis2`, and `axis3`). Not all ActiGraph accelerometers collect data on three axes. Also, we can see the timezone/locale (`r get_timezone(good_data)`) and the epoch length (`r get_epochlength(good_data)` seconds).
 
 Data need to pass several checks:
+
   1. The data is ordered by timestamp (earliest to latest).
   2. Each observation is regularly spaced by a constant time period (i.e., the epoch length).
   3. No observations are duplicates.
