@@ -72,7 +72,8 @@ Data need to pass several checks:
 3.  No observations are duplicates.
 4.  The data spans the entire specified data collection time period.
 5.  The data contains no gaps in observations.
-6.  The epoch length of the data must an exact divisor of 60.
+6.  The epoch length of the data must an exact divisor of multiple of
+    60.
 
 For better display of the following operations, we will remove the
 unnecessary columns, preserving only the accelerometer counts columns.
@@ -82,26 +83,6 @@ good_data <- good_data[, c("timestamp", "axis1", "axis2", "axis3")]
 good_data
 ```
 
-<<<<<<< HEAD
-=======
-=======
-
-Data need to pass several checks: 1. The data is ordered by timestamp
-(earliest to latest). 2. Each observation is regularly spaced by a
-constant time period (i.e., the epoch length). 3. No observations are
-duplicates. 4. The data spans the entire specified data collection time
-period. 5. The data contains no gaps in observations. 6. The epoch
-length of the data must an exact divisor of 60.
-
-For better display of the following operations, we will remove the
-unnecessary columns, preserving only the accelerometer counts columns.
-
-``` r
-good_data <- good_data[, c("timestamp", "axis1", "axis2", "axis3")]
-good_data
-```
-
->>>>>>> f580f87b6896bb9efdbb2f31c09a4166a26f02b6
     ## # A tsibble: 34,554 x 4 [10s] <America/Los_Angeles>
     ##    timestamp           axis1 axis2 axis3
     ##    <dttm>              <int> <int> <int>
