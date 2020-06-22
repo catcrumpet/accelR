@@ -54,9 +54,11 @@ pa_params_troiano <- function(age) {
 #' @export
 pa_params_matthews <- function(age = 18) {
   stopifnot(is.numeric(age))
+
   if (age < 18) {
     warning("Cut parameters not designed for under 18 years of age")
   }
+
   list(breaks = c(0, 100, 760, 5725, 16000, Inf),
        labels = c("sed", "lig", "mod", "vig", "ext"),
        include.lowest = TRUE,
