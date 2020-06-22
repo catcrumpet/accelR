@@ -19,6 +19,7 @@ categorize_pa <- function(counts, epochlength, age, cut_params = pa_params_troia
 #' @return A list of parameters for the cut function.
 #' @export
 pa_params_troiano <- function(age) {
+  stopifnot(is.numeric(age))
   case_when(age == 6 ~ c(1400, 3758),
             age == 7 ~ c(1515, 3947),
             age == 8 ~ c(1638, 4147),
@@ -47,6 +48,7 @@ pa_params_troiano <- function(age) {
 #' @return A list of parameters for the cut function.
 #' @export
 pa_params_matthews <- function(age = 18) {
+  stopifnot(is.numeric(age))
   if (age < 18) {
     warning("Cut parameters not designed for under 18 years of age")
   }
