@@ -4,6 +4,3 @@
 \name{accelR}
 \alias{accelR}
 \title{accelR}
-\description{
-accelR
-}
