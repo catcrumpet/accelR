@@ -12,7 +12,8 @@ check_agddata_starttime <- function(agd_data, agd_settings) {
 }
 
 is_stoppy_bad <- function(acc_data, epochlength, stoptime) {
-  (dplyr::last(acc_data$timestamp) + lubridate::seconds(epochlength)) != stoptime
+  dplyr::last(acc_data$timestamp) != (floor_date(stoptime, unit = "10 seconds") - lubridate::seconds(epochlength))
+  # (dplyr::last(acc_data$timestamp) + lubridate::seconds(epochlength)) != stoptime
 }
 
 # chk_d_stop_
