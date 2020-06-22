@@ -40,6 +40,23 @@ pa_params_troiano <- function(age) {
          ordered_result = TRUE)
 }
 
+#' Cut parameters for Matthews
+#'
+#' Generates cut parameters based on Matthews values for adults.
+#' @param age Age in years as a numeric value.
+#' @return A list of parameters for the cut function.
+#' @export
+pa_params_matthews <- function(age = 18) {
+  if (age < 18) {
+    warning("Cut parameters not designed for under 18 years of age")
+  }
+  list(breaks = c(0, 100, 760, 5725, 16000, Inf),
+       labels = c("sed", "lig", "mod", "vig", "ext"),
+       include.lowest = TRUE,
+       right = FALSE,
+       ordered_result = TRUE)
+}
+
 #' Add PA categories to accelerometer data
 #'
 #' Convenience wrapper for \code{categorize_pa}
