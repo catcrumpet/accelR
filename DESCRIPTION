@@ -34,3 +34,5 @@ Imports:
 LinkingTo: Rcpp
 RoxygenNote: 7.1.0
 ByteCompile: true
+Suggests: 
+    testthat
