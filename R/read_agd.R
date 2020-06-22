@@ -64,7 +64,7 @@ read_agd_raw_ <- function(file, tz = "UTC") {
         collect() %>%
         rename_all(tolower)
 
-    baseline_time_raw <- raw_data$datatimestamp[[1]]
+    baseline_time_raw <- dplyr::first(raw_data$datatimestamp)
     baseline_time <- convert_time_(baseline_time_raw, tz)
 
     data <-
@@ -72,10 +72,7 @@ read_agd_raw_ <- function(file, tz = "UTC") {
         rename(timestamp = datatimestamp) %>%
         mutate(timestamp = (timestamp - baseline_time_raw) / 1e+07) %>%
         mutate_if(is.numeric, as.integer) %>%
-        mutate(timestamp =
-                   with_tz(baseline_time, tzone = "UTC") %>%
-                   {. + seconds(timestamp)} %>%
-                   with_tz(tzone = tz))
+        mutate(timestamp =  with_tz(baseline_time + seconds(timestamp), tzone = tz))
 
     # There is a very specific bug in lubridate where it breaks at the DST
     # boundary. The way to get around is to first convert the time to UTC, do
@@ -89,5 +86,5 @@ read_agd_raw_ <- function(file, tz = "UTC") {
 convert_time_ <- function(time, tz) {
     # anytime::anytime(time / 1e+07 - 62135596800)
     as.POSIXct(time / 1e7, origin = "0001-01-01 00:00:00", tz = "UTC") %>%
-        lubridate::force_tz(tzone = tz)
+    lubridate::with_tz(tzone = tz)
 }
