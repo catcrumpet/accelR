@@ -127,7 +127,8 @@ bestest_data
 ### Summarize by day
 The simplest summary to perform is on the day level. 
 ```{r}
-summarise_day(bestest_data, counts = axis1, pa = pa, valid = valid)
+day_summary <- summarise_day(bestest_data, counts = axis1, pa = pa, valid = valid)
+day_summary
 ```
 
 This summary provides total minutes for each category (`*_m`) of physical activity as well as an aggregate sum of activity counts by category (`*_c`) of physical activity.

@@ -259,7 +259,8 @@ bestest_data
 The simplest summary to perform is on the day level.
 
 ``` r
-summarise_day(bestest_data, counts = axis1, pa = pa, valid = valid)
+day_summary <- summarise_day(bestest_data, counts = axis1, pa = pa, valid = valid)
+day_summary
 ```
 
     ## # A tibble: 5 x 20
