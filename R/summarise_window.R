@@ -1,3 +1,4 @@
+# windows are sorted
 #' @export
 summarise_window <- function(acc_data,
                              anchor_times,
@@ -16,6 +17,9 @@ summarise_window <- function(acc_data,
                        map_dfr(windows, convert_window_)) %>%
     mutate(window_start = anchor_time + minutes(window_left),
            window_stop = anchor_time + minutes(window_right))
+
+  # TODO: compare to group by timestamp and pre-subset using the largest window
+  # span within timestamp group
 
   std_ldt_subset <-
     standardize_data_(acc_data,
@@ -46,19 +50,16 @@ convert_window_ <- function(window) {
               msg = "Window must be a numeric vector of length 1 or 2.")
 
   if (length(window) == 1) {
-    win_len <- as.integer(abs(window))
-    if (window < 0) {
-      win_vec <- c(window, 0L)
-    } else if (window > 0) {
-      win_vec <- c(0L, window)
-    }
+    win_vec <- sort(window, 0L)
+    # win_len <- as.integer(abs(window))
   } else if (length(window) == 2) {
-    stopifnot(window[[2]] > window[[1]])
-    win_vec <- window
-    win_len <- as.integer(win_vec[2] - win_vec[1])
+    win_vec <- sort(window)
   }
 
-  stopifnot(win_len > 0)
+  assert_that(win_vec[1] < win_vec[2],
+              msg = "Window boundaries are misspecified.")
+
+  win_len <- as.integer(win_vec[2] - win_vec[1])
 
   tibble(window_left = win_vec[1],
          window_right = win_vec[2],
