@@ -46,7 +46,7 @@ convert_window_ <- function(window) {
                           msg = "Window must be a numeric vector of length 1 or 2.")
 
   if (length(window) == 1) {
-    win_vec <- sort(window, 0L)
+    win_vec <- sort(c(window, 0L))
     # win_len <- as.integer(abs(window))
   } else if (length(window) == 2) {
     win_vec <- sort(window)
