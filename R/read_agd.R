@@ -54,7 +54,7 @@ read_agd_raw_ <- function(file, tz = "UTC") {
         dplyr::mutate_at(dplyr::vars(dplyr::any_of(c("dateOfBirth")),
                                      dplyr::ends_with("time"),
                                      dplyr::ends_with("date")),
-                         ~convert_time_(., tz = tz)) %>%
+                         ~convert_agd_time_(., tz = tz)) %>%
         dplyr::select(dplyr::pull(dplyr::tbl(db, "settings"), settingName)) %>%
         dplyr::rename_all(~tolower(stringr::str_replace_all(., "\\s", "_"))) %>%
         dplyr::mutate_at(dplyr::vars(dplyr::starts_with("epoch")), as.integer)
@@ -73,7 +73,7 @@ read_agd_raw_ <- function(file, tz = "UTC") {
 
     baseline_time_raw <- dplyr::first(raw_data$datatimestamp)
     # convert to UTC time
-    baseline_time_utc <- convert_time_(baseline_time_raw, tz = "UTC")
+    baseline_time_utc <- convert_agd_time_(baseline_time_raw, tz = "UTC")
 
     data <-
         raw_data %>%
@@ -88,7 +88,7 @@ read_agd_raw_ <- function(file, tz = "UTC") {
     list(data = data, settings = settings)
 }
 
-convert_time_ <- function(x, tz) {
+convert_agd_time_ <- function(x, tz) {
     # anytime::anytime(time / 1e+07 - 62135596800)
     as.POSIXct(x / 1e7, origin = "0001-01-01 00:00:00", tz = tz)
 }
