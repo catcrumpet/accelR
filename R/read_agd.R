@@ -10,7 +10,7 @@ read_agd <- function(file, tz = "UTC", settings = FALSE) {
 
     agd_data_raw <- read_agd_raw_(file, tz)
 
-    assert_that(nrow(agd_data_raw$settings) == 1)
+    assertthat::assert_that(nrow(agd_data_raw$settings) == 1)
 
     acc_data <- tsibble::as_tsibble(agd_data_raw$data, index = timestamp)
     agd_settings <- agd_data_raw$settings
@@ -30,39 +30,40 @@ read_agd <- function(file, tz = "UTC", settings = FALSE) {
 }
 
 read_agd_raw_ <- function(file, tz = "UTC") {
-    assert_that(file.exists(file))
+    assertthat::assert_that(file.exists(file))
 
     db <- DBI::dbConnect(RSQLite::SQLite(), dbname = file)
     on.exit(DBI::dbDisconnect(db))
 
     settings <-
         db %>%
-        tbl("settings") %>%
-        select(settingName, settingValue) %>%
-        collect() %>%
-        distinct() %>%
+        dplyr::tbl("settings") %>%
+        dplyr::select(settingName, settingValue) %>%
+        dplyr::collect() %>%
+        dplyr::distinct() %>%
         tidyr::spread(settingName, settingValue, convert = TRUE) %>%
-        mutate_at(vars(any_of(c("height", "mass", "age")),
-                       matches("dateOfBirth"),
-                       ends_with("time"),
-                       ends_with("date")), ~na_if(., 0)) %>%
-        mutate_at(vars(any_of("sex")), ~if_else(. %in% "Undefined", NA_character_, .)) %>%
-        mutate_at(vars(any_of("finished")), as.logical) %>%
-        mutate_at(vars(any_of(c("height", "mass", "age"))), as.numeric) %>%
-        mutate_at(vars(any_of(c("customsleepparameters", "notes"))), as.character) %>%
-        mutate_at(vars(any_of(c("dateOfBirth")),
-                       ends_with("time"),
-                       ends_with("date")),
-                  ~convert_time_(., tz = tz)) %>%
-        select(pull(tbl(db, "settings"), settingName)) %>%
-        rename_all(~tolower(stringr::str_replace_all(., "\\s", "_"))) %>%
-        mutate_at(vars(starts_with("epoch")), as.integer)
+        dplyr::mutate_at(vars(any_of(c("height", "mass", "age")),
+                              matches("dateOfBirth"),
+                              ends_with("time"),
+                              ends_with("date")), ~na_if(., 0)) %>%
+        dplyr::mutate_at(dplyr::vars(dplyr::any_of("sex")),
+                         ~dplyr::if_else(. %in% "Undefined", NA_character_, .)) %>%
+        dplyr::mutate_at(dplyr::vars(dplyr::any_of("finished")), as.logical) %>%
+        dplyr::mutate_at(dplyr::vars(any_of(c("height", "mass", "age"))), as.numeric) %>%
+        dplyr::mutate_at(dplyr::vars(any_of(c("customsleepparameters", "notes"))), as.character) %>%
+        dplyr::mutate_at(dplyr::vars(dplyr::any_of(c("dateOfBirth")),
+                                     dplyr::ends_with("time"),
+                                     dplyr::ends_with("date")),
+                         ~convert_time_(., tz = tz)) %>%
+        dplyr::select(dplyr::pull(dplyr::tbl(db, "settings"), settingName)) %>%
+        dplyr::rename_all(~tolower(stringr::str_replace_all(., "\\s", "_"))) %>%
+        dplyr::mutate_at(dplyr::vars(dplyr::starts_with("epoch")), as.integer)
 
     raw_data <-
         db %>%
-        tbl("data") %>%
-        collect() %>%
-        rename_all(tolower)
+        dplyr::tbl("data") %>%
+        dplyr::collect() %>%
+        dplyr::rename_all(tolower)
 
     # There is a very specific bug in lubridate where it breaks at the DST
     # boundary. The way to get around is to first convert the time to UTC, do
@@ -76,13 +77,13 @@ read_agd_raw_ <- function(file, tz = "UTC") {
 
     data <-
         raw_data %>%
-        rename(timestamp = datatimestamp) %>%
-        mutate(timestamp = (timestamp - baseline_time_raw) / 1e+07) %>%
-        mutate_if(is.numeric, as.integer) %>%
+        dplyr::rename(timestamp = datatimestamp) %>%
+        dplyr::mutate(timestamp = (timestamp - baseline_time_raw) / 1e+07) %>%
+        dplyr::mutate_if(is.numeric, as.integer) %>%
         # first calculate timestamps using UTC time
-        mutate(timestamp = baseline_time_utc + lubridate::seconds(timestamp),
-               # then convert to the desired timezone
-               timestamp = lubridate::with_tz(timestamp, tzone = tz))
+        dplyr::mutate(timestamp = baseline_time_utc + lubridate::seconds(timestamp),
+                      # then convert to the desired timezone
+                      timestamp = lubridate::with_tz(timestamp, tzone = tz))
 
     list(data = data, settings = settings)
 }
