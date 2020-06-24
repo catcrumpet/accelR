@@ -1,17 +1,14 @@
 #' @export
-summarise_day <- function(acc_data, counts = axis1, pa = pa, valid = !nonwear) {
+summarise_day <- function(acc_data, counts = axis1, pa = pa, valid = valid) {
 
   epochlength <- get_epochlength(acc_data)
 
   standardize_data_(acc_data,
-                    !!enquo(counts),
-                    !!enquo(pa),
-                    !!enquo(valid)) %>%
-    #                 data_table = TRUE) %>%
-    # lazy_dt(key_by = timestamp) %>%
-    mutate(date = lubridate::date(timestamp)) %>%
-    group_by(date) %>%
-    group_modify(~summarise_chunk_(., epochlength = epochlength)) %>%
-    ungroup()
-    # as_tibble()
+                    !!rlang::enquo(counts),
+                    !!rlang::enquo(pa),
+                    !!rlang::enquo(valid)) %>%
+    dplyr::mutate(date = lubridate::date(timestamp)) %>%
+    dplyr::group_by(date) %>%
+    dplyr::group_modify(~summarise_chunk_(., epochlength = epochlength)) %>%
+    dplyr::ungroup()
 }

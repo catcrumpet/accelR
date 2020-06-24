@@ -3,5 +3,5 @@ format_v.POSIXct <- function(x) {
 }
 
 str_pad_0_adj <- function(x) {
-  stringr::str_pad(x, max(str_length(x)), "left", "0")
+  stringr::str_pad(x, max(stringr::str_length(x)), "left", "0")
 }

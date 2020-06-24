@@ -12,14 +12,14 @@ reintegrate_epochs <- function(acc_data, new_epochlength, collapse_function = su
 
   output_data <-
     acc_data %>%
-    mutate(timestamp = floor_date(timestamp, seconds(new_epochlength))) %>%
-    group_by(timestamp) %>%
-    {full_join(ungroup(summarise_if(., is.numeric, collapse_function)),
-               ungroup(summarise(., n = n())),
-               by = "timestamp")} %>%
-    ungroup() %>%
-    filter(n == integration_factor) %>%
-    select(-n) %>%
+    dplyr::mutate(timestamp = lubridate::floor_date(timestamp, lubridate::seconds(new_epochlength))) %>%
+    dplyr::group_by(timestamp) %>%
+    {dplyr::full_join(dplyr::ungroup(dplyr::summarise_if(., is.numeric, collapse_function)),
+                      dplyr::ungroup(dplyr::summarise(., n = dplyr::n())),
+                      by = "timestamp")} %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(n == integration_factor) %>%
+    dplyr::select(-n) %>%
     tsibble::as_tsibble(index = timestamp)
 
   check_data_integrity(output_data)

@@ -69,31 +69,32 @@ count_nonwear_troiano_seq_ <- function(counts,
 
   counts_seq <- seq_along(counts)
 
-  data.table(row = counts_seq,
-             counts = counts) %>%
-    lazy_dt(immutable = FALSE) %>%
-    mutate(wear =
-             case_when(counts > spike_stoplevel ~ 2L,
-                       counts <= activity_threshold | counts > max_nonzero_count ~ 0L,
-                       TRUE ~ 1L)) %>%
-    group_by(rleid = rleidv(wear)) %>%
-    summarise(wear = data.table::first(wear),
-              .from = data.table::first(row),
-              .n = n()) %>%
-    mutate(wear =
-             case_when(row_number() == 1 & is.na(wear) ~ 1L,
-                       wear == 1 & lead(wear, default = 1L) == 0L & .n <= spike_tolerance ~ NA_integer_,
-                       TRUE ~ wear) %>%
-             zoo::na.locf() %>%
-             as.integer()) %>%
-    group_by(rleid = rleidv(wear)) %>%
-    summarise(wear = data.table::first(wear),
-              .from = data.table::first(.from),
-              .n = sum(.n)) %>%
-    filter(wear == 0L, .n >= min_period_len) %>%
-    transmute(.from, .to = .from + .n - 1L) %>%
-    as.data.table() %>%
-    pmap(~..1:..2) %>%
+  dplyr::tibble(row = counts_seq,
+                counts = counts) %>%
+    dplyr::mutate(wear =
+                    dplyr::case_when(counts > spike_stoplevel ~ 2L,
+                                     counts <= activity_threshold |
+                                       counts > max_nonzero_count ~ 0L,
+                                     TRUE ~ 1L)) %>%
+    dplyr::group_by(rleid = data.table::rleidv(wear)) %>%
+    dplyr::summarise(wear = dplyr::first(wear),
+                     .from = dplyr::first(row),
+                     .n = dplyr:n()) %>%
+    dplyr::mutate(wear =
+                    dplyr::case_when(dplyr::row_number() == 1 & is.na(wear) ~ 1L,
+                                     wear == 1 &
+                                       dplyr::lead(wear, default = 1L) == 0L &
+                                       .n <= spike_tolerance ~ NA_integer_,
+                                     TRUE ~ wear) %>%
+                    data.table::nafill(type = "locf") %>%
+                    as.integer()) %>%
+    dplyr::group_by(rleid = data.table::rleidv(wear)) %>%
+    dplyr::summarise(wear = dplyr::first(wear),
+                     .from = dplyr::first(.from),
+                     .n = sum(.n)) %>%
+    dplyr::filter(wear == 0L, .n >= min_period_len) %>%
+    dplyr::transmute(.from, .to = .from + .n - 1L) %>%
+    purrr::pmap(~..1:..2) %>%
     unlist() %>%
     {counts_seq %in% .}
 }
@@ -108,19 +109,17 @@ count_nonwear_troiano_nonseq_ <- function(counts,
 
   counts_seq <- seq_along(counts)
 
-  tibble(row = counts_seq,
-         counts = if_else(counts > max_nonzero_count, 0, counts),
+  dplyr::tibble(row = counts_seq,
+         counts = dplyr::if_else(counts > max_nonzero_count, 0, counts),
          .n = wle(counts, activity_threshold, spike_tolerance, spike_stoplevel)) %>%
-    lazy_dt(immutable = FALSE) %>%
-    filter(.n >= min_period_len) %>%
-    rename(.from = row) %>%
-    select(.from, .n) %>%
-    mutate(a = .from - dplyr::first(.from),
-           b = .to - dplyr::first(.from)) %>%
-    filter(overlap(a, b)) %>%
-    select(.from, .to, .n) %>%
-    as.data.table() %>%
-    pmap(~..1:..2) %>%
+    dplyr::filter(.n >= min_period_len) %>%
+    dplyr::rename(.from = row) %>%
+    dplyr::select(.from, .n) %>%
+    dplyr::mutate(a = .from - dplyr::first(.from),
+                  b = .to - dplyr::first(.from)) %>%
+    dplyr::filter(overlap(a, b)) %>%
+    dplyr::select(.from, .to, .n) %>%
+    purrr::pmap(~..1:..2) %>%
     unlist() %>%
     {counts_seq %in% .}
 }
@@ -135,10 +134,10 @@ add_nonwear <- function(acc_data,
   epochlength <- get_epochlength(acc_data)
 
   acc_data %>%
-    mutate(!!enquo(nonwear) :=
-             categorize_nonwear(pull(acc_data, !!enquo(counts)),
-                                epochlength = !!epochlength,
-                                algorithm = !!algorithm,
-                                ...))
+    dplyr::mutate(!!rlang::enquo(nonwear) :=
+                    categorize_nonwear(dplyr::pull(acc_data, !!rlang::enquo(counts)),
+                                       epochlength = !!epochlength,
+                                       algorithm = !!algorithm,
+                                       ...))
 
 }

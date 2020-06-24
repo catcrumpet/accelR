@@ -43,7 +43,7 @@ get_timezone <- function(acc_data) {
 #' @return Accelerometer data with updated timezone.
 #' @export
 change_timezone <- function(acc_data, tz = Sys.timezone()) {
-  assert_that(tz %in% OlsonNames())
+  assertthat::assert_that(tz %in% OlsonNames())
   attr(acc_data$timestamp, "tzone") <- tz
   acc_data
 }

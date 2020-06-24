@@ -7,47 +7,43 @@ summarise_window <- function(acc_data,
                              pa = pa,
                              valid = valid) {
 
-  stopifnot(is.POSIXct(anchor_times))
+  stopifnot(lubridate::is.POSIXct(anchor_times))
   # msg = "Anchor times must be a vector of POSIXct objects."
 
   epochlength <- get_epochlength(acc_data)
 
   parameter_tb <-
     tidyr::expand_grid(anchor_time = anchor_times,
-                       map_dfr(windows, convert_window_)) %>%
-    mutate(window_start = anchor_time + minutes(window_left),
-           window_stop = anchor_time + minutes(window_right))
+                       purrr::map_dfr(windows, convert_window_)) %>%
+    dplyr::mutate(window_start = anchor_time + lubridate::minutes(window_left),
+                  window_stop = anchor_time + lubridate::minutes(window_right))
 
   # TODO: compare to group by timestamp and pre-subset using the largest window
   # span within timestamp group
 
-  std_ldt_subset <-
+  std_data_subset <-
     standardize_data_(acc_data,
-                      !!enquo(counts),
-                      !!enquo(pa),
-                      !!enquo(valid),
-                      data_table = TRUE) %>%
-    lazy_dt(key_by = timestamp) %>%
-    filter(timestamp >= min(parameter_tb$window_start),
-           timestamp < max(parameter_tb$window_stop)) %>%
-    compute()
+                      !!rlang::enquo(counts),
+                      !!rlang::enquo(pa),
+                      !!rlang::enquo(valid)) %>%
+    dplyr::filter(timestamp >= min(parameter_tb$window_start),
+                  timestamp < max(parameter_tb$window_stop))
 
   parameter_tb %>%
-    bind_cols(map2_dfr(.$window_start,
-                       .$window_stop,
-                       ~summarise_window_(std_ldt_subset, .x, .y, epochlength)))
+    dplyr::bind_cols(purrr::map2_dfr(.$window_start,
+                                     .$window_stop,
+                                     ~summarise_window_(std_data_subset, .x, .y, epochlength)))
 }
 
-summarise_window_ <- function(std_ldt, window_start, window_stop, epochlength) {
-  std_ldt %>%
-    filter(timestamp >= !!window_start, timestamp < !!window_stop) %>%
-    as_tibble() %>%
+summarise_window_ <- function(std_data, window_start, window_stop, epochlength) {
+  std_data %>%
+    dplyr::filter(timestamp >= !!window_start, timestamp < !!window_stop) %>%
     summarise_chunk_(epochlength)
 }
 
 convert_window_ <- function(window) {
-  assert_that(is.numeric(window) & length(window) %in% 1:2,
-              msg = "Window must be a numeric vector of length 1 or 2.")
+  assertthat::assert_that(is.numeric(window) & length(window) %in% 1:2,
+                          msg = "Window must be a numeric vector of length 1 or 2.")
 
   if (length(window) == 1) {
     win_vec <- sort(window, 0L)
@@ -56,16 +52,12 @@ convert_window_ <- function(window) {
     win_vec <- sort(window)
   }
 
-  assert_that(win_vec[1] < win_vec[2],
-              msg = "Window boundaries are misspecified.")
+  assertthat::assert_that(win_vec[1] < win_vec[2],
+                          msg = "Window boundaries are misspecified.")
 
   win_len <- as.integer(win_vec[2] - win_vec[1])
 
-  tibble(window_left = win_vec[1],
-         window_right = win_vec[2],
-         window_length = win_len)
-}
-
-if (moomoo) {
-  convert_window_ <- memoise::memoise(convert_window_)
+  dplyr::tibble(window_left = win_vec[1],
+                window_right = win_vec[2],
+                window_length = win_len)
 }

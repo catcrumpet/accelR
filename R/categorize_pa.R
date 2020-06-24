@@ -25,19 +25,19 @@ pa_params_troiano <- function(age) {
     stop("Cut parameters not designed for under 6 years of age")
   }
 
-  case_when(age == 6 ~ c(1400, 3758),
-            age == 7 ~ c(1515, 3947),
-            age == 8 ~ c(1638, 4147),
-            age == 9 ~ c(1770, 4360),
-            age == 10 ~ c(1910, 4588),
-            age == 11 ~ c(2059, 4832),
-            age == 12 ~ c(2220, 5094),
-            age == 13 ~ c(2393, 5375),
-            age == 14 ~ c(2580, 5679),
-            age == 15 ~ c(2781, 6007),
-            age == 16 ~ c(3000, 6363),
-            age == 17 ~ c(3239, 6751),
-            age >= 18 ~ c(2020, 5999)) %>%
+  dplyr::case_when(age == 6 ~ c(1400, 3758),
+                   age == 7 ~ c(1515, 3947),
+                   age == 8 ~ c(1638, 4147),
+                   age == 9 ~ c(1770, 4360),
+                   age == 10 ~ c(1910, 4588),
+                   age == 11 ~ c(2059, 4832),
+                   age == 12 ~ c(2220, 5094),
+                   age == 13 ~ c(2393, 5375),
+                   age == 14 ~ c(2580, 5679),
+                   age == 15 ~ c(2781, 6007),
+                   age == 16 ~ c(3000, 6363),
+                   age == 17 ~ c(3239, 6751),
+                   age >= 18 ~ c(2020, 5999)) %>%
     {c(0, 100, ., 16000, Inf)} %>%
     list(breaks = .,
          labels = c("sed", "lig", "mod", "vig", "ext"),
@@ -71,10 +71,10 @@ pa_params_matthews <- function(age = 18) {
 #' Convenience wrapper for \code{categorize_pa}
 #' @export
 add_pa <- function(acc_data, counts, age, cut_params = pa_params_troiano, pa = "pa") {
-  pa_vals <- categorize_pa(pull(acc_data, !!enquo(counts)),
+  pa_vals <- categorize_pa(dplyr::pull(acc_data, !!rlang::enquo(counts)),
                            epochlength = get_epochlength(acc_data),
                            age = age,
                            cut_params = cut_params)
 
-  mutate(acc_data, !!enquo(pa) := pa_vals)
+  dplyr::mutate(acc_data, !!rlang::enquo(pa) := pa_vals)
 }
