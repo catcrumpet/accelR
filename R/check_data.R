@@ -11,8 +11,8 @@ check_agddata_starttime <- function(agd_data, agd_settings) {
 }
 
 # chk_d_stop_
-check_agddata_stoptime <- function(agd_data, agd_settings, warning = FALSE) {
-  epochlength_period <- lubridate::seconds(get_epochlength(agd_data))
+check_agddata_stoptime <- function(acc_data, agd_settings, warning = FALSE) {
+  epochlength_period <- lubridate::seconds(get_epochlength(acc_data))
 
   calculated_stoptime <-
     lubridate::floor_date(agd_settings$stopdatetime[[1]],
