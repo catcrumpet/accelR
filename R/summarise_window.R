@@ -32,7 +32,10 @@ summarise_window <- function(acc_data,
   parameter_tb %>%
     dplyr::bind_cols(purrr::map2_dfr(.$window_start,
                                      .$window_stop,
-                                     ~summarise_window_(std_data_subset, .x, .y, epochlength)))
+                                     ~summarise_window_(std_data = std_data_subset,
+                                                        window_start = .x,
+                                                        window_stop = .y,
+                                                        epochlength = epochlength)))
 }
 
 summarise_window_ <- function(std_data, window_start, window_stop, epochlength) {
