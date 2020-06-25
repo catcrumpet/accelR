@@ -79,7 +79,7 @@ count_nonwear_troiano_seq_ <- function(counts,
     dplyr::group_by(rleid = data.table::rleidv(wear)) %>%
     dplyr::summarise(wear = dplyr::first(wear),
                      .from = dplyr::first(row),
-                     .n = dplyr:n()) %>%
+                     .n = dplyr::n()) %>%
     dplyr::mutate(wear =
                     dplyr::case_when(dplyr::row_number() == 1 & is.na(wear) ~ 1L,
                                      wear == 1 &
